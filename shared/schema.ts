@@ -83,6 +83,9 @@ export const genericScreenTypes = pgTable("generic_screen_types", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
   baseHours: integer("base_hours").notNull().default(4), // Base hours for this screen type
+  minComplexity: varchar("min_complexity", { length: 50 }).default('Simple'), // Minimum complexity level
+  maxComplexity: varchar("max_complexity", { length: 50 }).default('Complex'), // Maximum complexity level
+  allowedBehaviors: text("allowed_behaviors").default('Static,Partial Dynamic,Dynamic'), // Comma-separated list
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 });

@@ -19,7 +19,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
-import type { Project, ComplexityMaster, ScreenTypeMaster, Screen } from "@shared/schema";
+import type { Project, ComplexityMaster, ScreenTypeMaster, Screen, GenericScreenType } from "@shared/schema";
+import { SmartEstimationEngine } from "@/lib/estimation-engine";
 
 // Use the standard EstimationScreenData interface
 import type { EstimationScreenData } from "@/lib/types";
@@ -75,6 +76,11 @@ export default function Estimations() {
 
   const { data: screenTypes, isLoading: screenTypesLoading } = useQuery<ScreenTypeMaster[]>({
     queryKey: ["/api/screen-types"],
+    retry: false,
+  });
+
+  const { data: genericScreenTypes, isLoading: genericScreenTypesLoading } = useQuery<GenericScreenType[]>({
+    queryKey: ["/api/generic-screen-types"],
     retry: false,
   });
 
@@ -174,22 +180,31 @@ export default function Estimations() {
       let complexityHours = 0;
       let screenTypeHours = 0;
       
-      // Use proper estimation formula: Base Hours × Complexity Multiplier × Behavior Multiplier
-      const baseHours = 4; // Default base hours for generic screen
-      let complexityMultiplier = 1.00;
-      let behaviorMultiplier = 1.00;
+      // Use Smart Estimation Engine with interdependency awareness
+      const selectedScreen = projectScreens?.find(s => s.id === updatedScreens[index].screenId);
+      const genericScreenType = genericScreenTypes?.find(gst => 
+        selectedScreen?.name.toLowerCase().includes(gst.name.toLowerCase()) ||
+        gst.name.toLowerCase().includes('form') // Default fallback
+      ) || genericScreenTypes?.[0];
       
-      if (complexity && complexities) {
+      if (complexity && screenType && complexities && screenTypes && genericScreenType) {
         const complexityData = complexities.find(c => c.name === complexity);
-        complexityMultiplier = parseFloat(complexityData?.multiplier || '1.00');
+        const behaviorData = screenTypes.find(s => s.name === screenType);
+        
+        if (complexityData && behaviorData) {
+          // Use smart estimation engine
+          const estimationContext = {
+            screenType: genericScreenType,
+            complexity: complexityData,
+            behavior: behaviorData
+          };
+          
+          updatedScreens[index].hours = SmartEstimationEngine.calculateHours(estimationContext);
+          
+          // Log estimation explanation for transparency
+          console.log('🎯 Smart Estimation:', SmartEstimationEngine.getEstimationExplanation(estimationContext));
+        }
       }
-      
-      if (screenType && screenTypes) {
-        const screenTypeData = screenTypes.find(s => s.name === screenType);
-        behaviorMultiplier = parseFloat(screenTypeData?.multiplier || '1.00');
-      }
-      
-      updatedScreens[index].hours = Math.round(baseHours * complexityMultiplier * behaviorMultiplier);
     }
     
     setEstimationScreens(updatedScreens);
@@ -254,7 +269,7 @@ export default function Estimations() {
     createEstimationMutation.mutate({ estimation, details });
   };
 
-  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading) {
+  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading || genericScreenTypesLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
         <div className="container mx-auto max-w-4xl">
