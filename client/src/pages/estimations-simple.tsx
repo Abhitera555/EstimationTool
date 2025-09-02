@@ -197,20 +197,29 @@ export default function SimplifiedEstimations() {
     
     if (!validateForm()) return;
     
-    // For now, we'll create a simplified estimation structure
-    // In a full implementation, you'd map this to your actual estimation schema
+    // Use a real screen ID from the database for the simplified estimation
+    const defaultScreenId = 6; // Using an existing screen from the database
+    
     const estimationData = {
-      projectId: parseInt(selectedProjectId),
-      name: estimationName.trim(),
-      versionNumber: versionNumber.trim(),
-      totalHours,
-      notes: `Items: ${estimationItems.length}`,
-      details: estimationItems.map(item => ({
-        screenType: item.screenType,
-        complexity: item.complexity,
-        screenTypeName: item.screenTypeName,
-        hours: item.hours
-      }))
+      estimation: {
+        projectId: parseInt(selectedProjectId),
+        name: estimationName.trim(),
+        versionNumber: versionNumber.trim(),
+        totalHours,
+        notes: `Simplified estimation with ${estimationItems.length} items: ${estimationItems.map(item => `${item.screenType} (${item.complexity}, ${item.screenTypeName})`).join(', ')}`
+      },
+      details: estimationItems.map(item => {
+        // Find IDs from master data
+        const complexityId = complexities?.find(c => c.name === item.complexity)?.id || 1;
+        const screenTypeId = screenTypes?.find(s => s.name === item.screenTypeName)?.id || 1;
+        
+        return {
+          screenId: defaultScreenId,
+          complexityId,
+          screenTypeId,
+          calculatedHours: item.hours
+        };
+      })
     };
 
     createEstimationMutation.mutate(estimationData);
