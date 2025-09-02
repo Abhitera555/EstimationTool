@@ -21,6 +21,9 @@ import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle }
 import { Link } from "wouter";
 import type { Project, ComplexityMaster, ScreenTypeMaster, Screen } from "@shared/schema";
 
+// Use the standard EstimationScreenData interface
+import type { EstimationScreenData } from "@/lib/types";
+
 interface EstimationScreen {
   screenId: number;
   screenName: string;
