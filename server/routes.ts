@@ -308,15 +308,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/estimations', isAuthenticated, async (req: any, res) => {
     try {
+      console.log('Request body:', req.body);
+      console.log('User claims:', req.user?.claims);
+      
       const { estimation, details } = createEstimationSchema.parse(req.body);
       const estimationWithUser = {
         ...estimation,
-        createdBy: req.user.claims.sub,
+        createdBy: req.user?.claims?.sub || 'anonymous',
       };
       const newEstimation = await storage.createEstimation(estimationWithUser, details);
       res.status(201).json(newEstimation);
     } catch (error) {
       console.error("Error creating estimation:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
       res.status(500).json({ message: "Failed to create estimation" });
     }
   });

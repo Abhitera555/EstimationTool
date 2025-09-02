@@ -117,21 +117,15 @@ export default function SimplifiedEstimations() {
   });
 
   const addEstimationItem = () => {
-    const defaultComplexity = complexities?.find(c => c.name === 'Simple') || complexities?.[0];
-    const defaultScreenType = screenTypes?.find(s => s.name === 'Static') || screenTypes?.[0];
-    const defaultGenericScreenType = genericScreenTypes?.[0];
-    
-    if (defaultComplexity && defaultScreenType && defaultGenericScreenType) {
-      const newItem: EstimationItem = {
-        id: `item-${Date.now()}-${Math.random()}`,
-        screenType: defaultGenericScreenType.name,
-        complexity: defaultComplexity.name,
-        screenTypeName: defaultScreenType.name,
-        hours: defaultComplexity.hours + defaultScreenType.hours,
-      };
-      setEstimationItems([...estimationItems, newItem]);
-      setErrors(prev => ({ ...prev, items: undefined }));
-    }
+    const newItem: EstimationItem = {
+      id: `item-${Date.now()}-${Math.random()}`,
+      screenType: '', // Start empty - user must select
+      complexity: '', // Start empty - user must select
+      screenTypeName: '', // Start empty - user must select (this is screen behavior)
+      hours: 0, // Start with 0 hours
+    };
+    setEstimationItems([...estimationItems, newItem]);
+    setErrors(prev => ({ ...prev, items: undefined }));
   };
 
   const removeEstimationItem = (id: string) => {
