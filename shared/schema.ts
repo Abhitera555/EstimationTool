@@ -66,7 +66,7 @@ export const complexityMaster = pgTable("complexity_master", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Screen Type Master table
+// Screen Type Master table (Static/Dynamic/Partial Dynamic)
 export const screenTypeMaster = pgTable("screen_type_master", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
@@ -74,6 +74,14 @@ export const screenTypeMaster = pgTable("screen_type_master", {
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Generic Screen Types table (Login, Dashboard, Settings, etc.)
+export const genericScreenTypes = pgTable("generic_screen_types", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Estimations table
@@ -160,6 +168,10 @@ export const screenTypeMasterRelations = relations(screenTypeMaster, ({ many }) 
   estimationDetails: many(estimationDetails),
 }));
 
+export const genericScreenTypesRelations = relations(genericScreenTypes, ({ many }) => ({
+  // Can be extended later if needed
+}));
+
 // Schemas for validation
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
@@ -184,6 +196,11 @@ export const insertScreenTypeSchema = createInsertSchema(screenTypeMaster).omit(
   updatedAt: true,
 });
 
+export const insertGenericScreenTypeSchema = createInsertSchema(genericScreenTypes).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertEstimationSchema = createInsertSchema(estimations).omit({
   id: true,
   createdAt: true,
@@ -204,6 +221,8 @@ export type ComplexityMaster = typeof complexityMaster.$inferSelect;
 export type InsertComplexity = z.infer<typeof insertComplexitySchema>;
 export type ScreenTypeMaster = typeof screenTypeMaster.$inferSelect;
 export type InsertScreenType = z.infer<typeof insertScreenTypeSchema>;
+export type GenericScreenType = typeof genericScreenTypes.$inferSelect;
+export type InsertGenericScreenType = z.infer<typeof insertGenericScreenTypeSchema>;
 export type Estimation = typeof estimations.$inferSelect;
 export type InsertEstimation = z.infer<typeof insertEstimationSchema>;
 export type EstimationDetail = typeof estimationDetails.$inferSelect;

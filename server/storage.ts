@@ -4,6 +4,7 @@ import {
   screens,
   complexityMaster,
   screenTypeMaster,
+  genericScreenTypes,
   estimations,
   estimationDetails,
   type User,
@@ -16,6 +17,7 @@ import {
   type InsertComplexity,
   type ScreenTypeMaster,
   type InsertScreenType,
+  type GenericScreenType,
   type Estimation,
   type InsertEstimation,
   type EstimationDetail,
@@ -56,6 +58,9 @@ export interface IStorage {
   createScreenType(screenType: InsertScreenType): Promise<ScreenTypeMaster>;
   updateScreenType(id: number, screenType: Partial<InsertScreenType>): Promise<ScreenTypeMaster>;
   deleteScreenType(id: number): Promise<void>;
+
+  // Generic Screen Types operations
+  getGenericScreenTypes(): Promise<GenericScreenType[]>;
 
   // Estimation operations
   getEstimations(): Promise<any[]>;
@@ -227,6 +232,11 @@ export class DatabaseStorage implements IStorage {
 
   async deleteScreenType(id: number): Promise<void> {
     await db.delete(screenTypeMaster).where(eq(screenTypeMaster.id, id));
+  }
+
+  // Generic Screen Types operations
+  async getGenericScreenTypes(): Promise<GenericScreenType[]> {
+    return await db.select().from(genericScreenTypes).orderBy(genericScreenTypes.name);
   }
 
   // Estimation operations

@@ -11,7 +11,7 @@ import Projects from "@/pages/projects";
 import Screens from "@/pages/screens";
 import Complexity from "@/pages/complexity";
 import ScreenTypes from "@/pages/screen-types";
-import Estimations from "@/pages/estimations";
+import Estimations from "@/pages/estimations-simple";
 import History from "@/pages/history";
 import Sidebar from "@/components/sidebar";
 
