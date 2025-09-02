@@ -1,0 +1,90 @@
+1. Backend (.NET API) Prompt
+Create an ASP.NET Core Web API named "EstimationTool".
+- Use Entity Framework Core with support for both SQL Server and PostgreSQL.
+- Implement JWT authentication with role-based authorization (Admin, Estimator, Viewer).
+- Design APIs for:
+  - Project Master (CRUD)
+  - Screen Master (CRUD)
+  - Complexity Master with editable hour weightages (CRUD)
+  - Screen Type Master with editable hour weightages (CRUD)
+  - Estimation:
+    - Select project and screens
+    - Select complexity and screen type per screen
+    - Derive total estimation = Sum(ComplexityHours + ScreenTypeHours)
+    - Store estimations with version numbers and timestamps
+    - Retrieve historical versions by project
+- Use DTOs and validation for all API inputs and outputs.
+- Document all APIs with Swagger/OpenAPI.
+
+2. Frontend (Angular) Prompt
+Create an Angular application for "EstimationTool".
+- Use Angular Material for UI components.
+- Implement a login page with JWT authentication and role-based navigation:
+  - Admin: Manage masters and view/create estimations
+  - Estimator: Create estimations only
+  - Viewer: Dashboard only
+- Implement forms with dropdowns for:
+  - Selecting Project
+  - Adding Screens dynamically
+  - Selecting Complexity (Simple/Medium/Complex)
+  - Selecting Screen Type (Static/Dynamic/Partial Dynamic)
+- Auto-calculate total hours in real-time based on master weightages.
+- Provide a save feature that stores estimation with a version number.
+- Build a Dashboard:
+  - Bar chart for project-wise estimation hours
+  - Pie chart for screen type distribution
+  - Filter by project or version
+- Add export to Excel/PDF for estimation data.
+
+
+3. Database Prompt
+Design a normalized database schema with:
+- Projects(ProjectId, ProjectName, CreatedAt)
+- Screens(ScreenId, ProjectId, ScreenName)
+- ComplexityMaster(ComplexityId, Name, Hours)
+- ScreenTypeMaster(ScreenTypeId, Name, Hours)
+- Estimations(EstimationId, ProjectId, TotalHours, VersionNo, CreatedBy, CreatedAt)
+- EstimationDetails(EstimationDetailId, EstimationId, ScreenId, ComplexityId, ScreenTypeId, Hours)
+- Users(UserId, UserName, PasswordHash, RoleId)
+- Roles(RoleId, RoleName)
+Include foreign keys and seed data for masters (Complexity, ScreenType).
+Ensure support for version tracking in the Estimations table.
+
+4. UI/UX Prompt
+Design a responsive Angular Material interface with:
+- Master data pages (Projects, Screens, Complexity, Screen Type) using tables with add/edit/delete actions.
+- Estimation creation form with a stepper or card layout:
+  1. Select Project
+  2. Add Screens with Complexity and Screen Type
+  3. Derive and preview estimation
+  4. Save with version
+- Dashboard with clean charts using ngx-charts:
+  - Bar chart: Project vs Total Hours
+  - Pie chart: Screen Type distribution
+- Color theme: modern, minimalistic with consistent spacing and typography.
+- Add role-based menu visibility.
+
+5. Additional Features Prompt
+- Implement version control so users can view previous estimations per project.
+- Add search and filter options for projects, screens, and estimations.
+- Ensure mobile-friendly responsive design.
+- Provide notifications (toast/snackbar) for user actions.
+- Include audit history (who created/edited an estimation).
+
+
+All-in-One Prompt (Normal Language)
+"I want to build an application to create project estimations. The user should be able to pick a project, list the screens, mark each screen as simple, medium, or complex, and select whether it is static, dynamic, or partial dynamic. The application should calculate total hours using values I set in a master screen. It should have role-based access (Admin, Estimator, Viewer), version control for past estimations, and a dashboard showing charts like project-wise estimation and screen type distribution. The backend should be in .NET, the frontend in Angular, and the database in SQL Server or PostgreSQL. The UI must be clean, modern, and responsive."
+________________________________________
+Simpler Layered Prompts
+Backend
+"Build a secure API that lets me manage projects, screens, complexity types, screen types, and estimations. I want to define hour values for each type in a master screen and use them to calculate total estimation. Add role-based access (Admin, Estimator, Viewer), JWT authentication, and versioning for estimations."
+________________________________________
+Frontend
+"Create an Angular app with forms to select a project, add screens, pick complexity and screen type, and see the total hours calculated automatically. Add role-based menus, editable master pages for settings, and a dashboard with bar and pie charts to visualize estimations. The design should be clean, responsive, and easy to use."
+________________________________________
+Database
+"Design tables to store projects, screens, complexity types with hours, screen types with hours, estimations with version history, and user roles for access control."
+________________________________________
+Dashboard
+"Show a dashboard with project estimation totals in a bar chart and screen type distribution in a pie chart. Add filters to switch between projects or estimation versions. Allow exporting results to Excel or PDF."
+
