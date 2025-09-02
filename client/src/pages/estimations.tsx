@@ -139,17 +139,17 @@ export default function Estimations() {
     // Clear screens error when adding screen
     setErrors(prev => ({ ...prev, screens: undefined }));
 
-    const defaultComplexity = complexities?.[0];
-    const defaultScreenType = screenTypes?.[0];
+    const defaultComplexity = complexities?.find(c => c.name === 'Simple') || complexities?.[0];
+    const defaultScreenType = screenTypes?.find(s => s.name === 'Static') || screenTypes?.[0];
     const defaultScreen = projectScreens[0];
     
     if (defaultComplexity && defaultScreenType && defaultScreen) {
       const newScreen: EstimationScreen = {
         screenId: defaultScreen.id,
         screenName: defaultScreen.name,
-        complexity: "Simple",
-        screenType: "Static",
-        hours: 8 + 4, // Default calculation
+        complexity: defaultComplexity.name,
+        screenType: defaultScreenType.name,
+        hours: defaultComplexity.hours + defaultScreenType.hours,
       };
       setEstimationScreens([...estimationScreens, newScreen]);
     }
@@ -163,7 +163,7 @@ export default function Estimations() {
     const updatedScreens = [...estimationScreens];
     updatedScreens[index] = { ...updatedScreens[index], [field]: value };
     
-    // Recalculate hours based on complexity and screen type
+    // Recalculate hours based on complexity and screen type using master data
     if (field === 'complexity' || field === 'screenType') {
       const complexity = field === 'complexity' ? value : updatedScreens[index].complexity;
       const screenType = field === 'screenType' ? value : updatedScreens[index].screenType;
@@ -171,16 +171,15 @@ export default function Estimations() {
       let complexityHours = 0;
       let screenTypeHours = 0;
       
-      switch(complexity) {
-        case 'Simple': complexityHours = 8; break;
-        case 'Medium': complexityHours = 16; break;
-        case 'Complex': complexityHours = 24; break;
+      // Get hours from master data
+      if (complexity && complexities) {
+        const complexityData = complexities.find(c => c.name === complexity);
+        complexityHours = complexityData?.hours || 0;
       }
       
-      switch(screenType) {
-        case 'Static': screenTypeHours = 4; break;
-        case 'Dynamic': screenTypeHours = 8; break;
-        case 'Partial Dynamic': screenTypeHours = 6; break;
+      if (screenType && screenTypes) {
+        const screenTypeData = screenTypes.find(s => s.name === screenType);
+        screenTypeHours = screenTypeData?.hours || 0;
       }
       
       updatedScreens[index].hours = complexityHours + screenTypeHours;
@@ -431,9 +430,11 @@ export default function Estimations() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Simple">Simple (8h)</SelectItem>
-                                <SelectItem value="Medium">Medium (16h)</SelectItem>
-                                <SelectItem value="Complex">Complex (24h)</SelectItem>
+                                {complexities?.map((complexity) => (
+                                  <SelectItem key={complexity.id} value={complexity.name}>
+                                    {complexity.name} ({complexity.hours}h)
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
@@ -448,9 +449,11 @@ export default function Estimations() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Static">Static (4h)</SelectItem>
-                                <SelectItem value="Dynamic">Dynamic (8h)</SelectItem>
-                                <SelectItem value="Partial Dynamic">Partial Dynamic (6h)</SelectItem>
+                                {screenTypes?.map((screenType) => (
+                                  <SelectItem key={screenType.id} value={screenType.name}>
+                                    {screenType.name} ({screenType.hours}h)
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
