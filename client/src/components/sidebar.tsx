@@ -15,8 +15,11 @@ import {
   Monitor,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   User,
   LogOut,
+  Settings,
 } from "lucide-react";
 
 const mainNavigation = [
@@ -25,7 +28,7 @@ const mainNavigation = [
   { name: "History", href: "/history", icon: History },
 ];
 
-const mastersNavigation = [
+const mastersSubNavigation = [
   { name: "Projects", href: "/projects", icon: FolderOpen },
   { name: "Screens", href: "/screens", icon: Tv },
   { name: "Complexity", href: "/complexity", icon: Sliders },
@@ -36,12 +39,21 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { user, isLoading } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mastersExpanded, setMastersExpanded] = useState(false);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
 
   const canAccessMasters = (user as any)?.role === "admin" || (user as any)?.role === "estimator";
+  
+  // Check if any masters route is active
+  const isMastersRouteActive = mastersSubNavigation.some(item => location === item.href);
+  
+  // Auto-expand masters if on a masters route
+  if (isMastersRouteActive && !mastersExpanded) {
+    setMastersExpanded(true);
+  }
 
   const NavItem = ({ item }: { item: any }) => {
     const isActive = location === item.href;
@@ -124,14 +136,49 @@ export default function Sidebar() {
           <>
             <Separator />
             <div className="space-y-2">
-              {!isCollapsed && (
-                <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                  Masters
-                </h2>
+              {/* Masters Toggle Button */}
+              <Button
+                variant="ghost"
+                onClick={() => setMastersExpanded(!mastersExpanded)}
+                className={`w-full justify-start gap-3 h-11 text-slate-700 hover:bg-slate-100 hover:text-slate-900 ${
+                  isMastersRouteActive ? "bg-slate-100" : ""
+                } ${isCollapsed ? "px-2" : "px-4"}`}
+                data-testid="nav-masters-toggle"
+              >
+                <Settings className={`h-5 w-5 ${isCollapsed ? "mx-auto" : ""}`} />
+                {!isCollapsed && (
+                  <>
+                    <span className="font-medium flex-1 text-left">Masters</span>
+                    {mastersExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </>
+                )}
+              </Button>
+              
+              {/* Masters Submenu */}
+              {mastersExpanded && !isCollapsed && (
+                <div className="ml-8 space-y-1">
+                  {mastersSubNavigation.map((item) => (
+                    <Link key={item.name} href={item.href}>
+                      <Button
+                        variant="ghost"
+                        className={`w-full justify-start gap-3 h-9 text-sm ${
+                          location === item.href
+                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                        data-testid={`nav-link-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span className="font-medium">{item.name}</span>
+                      </Button>
+                    </Link>
+                  ))}
+                </div>
               )}
-              {mastersNavigation.map((item) => (
-                <NavItem key={item.name} item={item} />
-              ))}
             </div>
           </>
         )}
