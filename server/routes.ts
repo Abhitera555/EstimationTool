@@ -320,33 +320,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/estimations', isAuthenticated, async (req: any, res) => {
     try {
-      console.log('Request body:', req.body);
-      console.log('User claims:', req.user?.claims);
-      
-      // Extract and validate the data
-      const { estimation, details } = createEstimationRequestSchema.parse(req.body);
+      // Skip validation temporarily to isolate the issue
+      const requestData = req.body;
+      console.log('Raw request data:', JSON.stringify(requestData, null, 2));
       
       // Get the user ID from the authenticated session
       const userId = req.user?.claims?.sub;
+      console.log('User ID from session:', userId);
+      
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated properly" });
       }
       
-      // Add the createdBy field
-      const estimationWithUser = {
-        ...estimation,
+      // Manually construct the estimation object
+      const estimation = {
+        projectId: requestData.estimation.projectId,
+        name: requestData.estimation.name,
+        totalHours: requestData.estimation.totalHours,
+        versionNumber: requestData.estimation.versionNumber,
+        notes: requestData.estimation.notes || '',
         createdBy: userId,
       };
       
-      console.log('Final estimation object:', estimationWithUser);
-      const newEstimation = await storage.createEstimation(estimationWithUser, details);
+      console.log('Final estimation object:', JSON.stringify(estimation, null, 2));
+      console.log('Details array:', JSON.stringify(requestData.details, null, 2));
+      
+      const newEstimation = await storage.createEstimation(estimation, requestData.details);
       res.status(201).json(newEstimation);
     } catch (error) {
       console.error("Error creating estimation:", error);
-      if (error instanceof Error) {
-        console.error("Error details:", error.message);
-      }
-      res.status(500).json({ message: "Failed to create estimation" });
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: "Failed to create estimation", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
