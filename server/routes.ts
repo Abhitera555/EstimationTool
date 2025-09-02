@@ -301,9 +301,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const createEstimationSchema = z.object({
-    estimation: insertEstimationSchema.omit({ createdBy: true }), // We'll add createdBy server-side
-    details: z.array(insertEstimationDetailSchema.omit({ estimationId: true })),
+  // Create a custom schema for API requests that excludes server-managed fields
+  const createEstimationRequestSchema = z.object({
+    estimation: z.object({
+      projectId: z.number(),
+      name: z.string(),
+      totalHours: z.number(),
+      versionNumber: z.string(),
+      notes: z.string().optional(),
+    }),
+    details: z.array(z.object({
+      screenId: z.number(),
+      complexityId: z.number(),
+      screenTypeId: z.number(),
+      calculatedHours: z.number(),
+    })),
   });
 
   app.post('/api/estimations', isAuthenticated, async (req: any, res) => {
@@ -312,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('User claims:', req.user?.claims);
       
       // Extract and validate the data
-      const { estimation, details } = createEstimationSchema.parse(req.body);
+      const { estimation, details } = createEstimationRequestSchema.parse(req.body);
       
       // Get the user ID from the authenticated session
       const userId = req.user?.claims?.sub;
