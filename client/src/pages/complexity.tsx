@@ -127,28 +127,34 @@ export default function Complexity() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-primary flex items-center gap-2">
-            <Settings className="h-8 w-8" />
-            Complexity Master
-          </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              Complexity Master
+            </h1>
+            <p className="text-slate-600 text-lg">Configure complexity levels: Simple/Medium/Complex with hour weightages</p>
+          </div>
           <Button 
             onClick={handleAddNew}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-6 py-3 rounded-lg font-medium shadow-lg"
             data-testid="button-add-complexity"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Complexity Type
+            Add Complexity Level
           </Button>
         </div>
 
         {/* Complexity List */}
-        <Card>
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Complexity Types & Hour Weightages</CardTitle>
+            <CardTitle className="text-xl font-semibold text-slate-800">Complexity Types & Hour Weightages</CardTitle>
+            <p className="text-sm text-slate-600 mt-2">These hours will be automatically added to estimations based on complexity selection</p>
           </CardHeader>
           <CardContent>
             {!complexities || complexities.length === 0 ? (
