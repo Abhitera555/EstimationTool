@@ -120,34 +120,40 @@ export default function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-primary flex items-center gap-2">
-            <FolderOpen className="h-8 w-8" />
-            Project Management
-          </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl">
+                <FolderOpen className="h-8 w-8 text-white" />
+              </div>
+              Project Master
+            </h1>
+            <p className="text-slate-600 text-lg">Create and manage project information for estimations</p>
+          </div>
           <Button 
             onClick={handleAddNew}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-6 py-3 rounded-lg font-medium shadow-lg"
             data-testid="button-add-project"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Project
+            Add New Project
           </Button>
         </div>
 
         {/* Projects List */}
-        <Card>
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <CardTitle>Projects List</CardTitle>
+              <CardTitle className="text-xl font-semibold text-slate-800">Projects List</CardTitle>
               <div className="w-full sm:w-64">
                 <Input
                   placeholder="Search projects..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-white border-slate-200"
                   data-testid="input-search-projects"
                 />
               </div>
