@@ -20,7 +20,7 @@ import type { EstimationWithDetails, Project } from "@/lib/types";
 export default function HistoryPage() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
-  const [projectFilter, setProjectFilter] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
   const [dateFromFilter, setDateFromFilter] = useState<string>("");
   const [dateToFilter, setDateToFilter] = useState<string>("");
 
@@ -99,7 +99,7 @@ export default function HistoryPage() {
   };
 
   const handleClearFilters = () => {
-    setProjectFilter("");
+    setProjectFilter("all");
     setDateFromFilter("");
     setDateToFilter("");
   };
@@ -108,7 +108,7 @@ export default function HistoryPage() {
   const filteredEstimations = estimations?.filter(estimation => {
     let matches = true;
     
-    if (projectFilter && estimation.projectId.toString() !== projectFilter) {
+    if (projectFilter && projectFilter !== "all" && estimation.projectId.toString() !== projectFilter) {
       matches = false;
     }
     
@@ -172,7 +172,7 @@ export default function HistoryPage() {
                     <SelectValue placeholder="All Projects" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Projects</SelectItem>
+                    <SelectItem value="all">All Projects</SelectItem>
                     {projects?.map((project) => (
                       <SelectItem key={project.id} value={project.id.toString()}>
                         {project.name}
