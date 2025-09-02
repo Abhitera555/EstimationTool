@@ -45,8 +45,7 @@ export default function Sidebar() {
     window.location.href = "/api/logout";
   };
 
-  const canAccessMasters = true; // Temporarily show for all users for testing
-  // const canAccessMasters = (user as any)?.role === "admin" || (user as any)?.role === "estimator";
+  const canAccessMasters = (user as any)?.role === "admin" || (user as any)?.role === "estimator";
   
   // Check if any masters route is active
   const isMastersRouteActive = mastersSubNavigation.some(item => location === item.href);
