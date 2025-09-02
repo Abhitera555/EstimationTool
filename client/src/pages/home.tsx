@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import ProjectHoursChart from "@/components/charts/project-hours-chart";
 import ScreenTypeChart from "@/components/charts/screen-type-chart";
+import ComplexityChart from "@/components/charts/complexity-chart";
 import type { DashboardStats, EstimationWithDetails } from "@/lib/types";
 
 export default function Home() {
@@ -146,35 +147,52 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          <div className="lg:col-span-2">
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg"></div>
-                  Project Estimation Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ProjectHoursChart />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Charts Section */}
+        <div className="space-y-8 mb-10">
+          {/* Main Project Hours Chart */}
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg"></div>
+                Project Estimation Hours
+                <div className="ml-auto text-sm font-normal text-slate-500">Interactive Chart Types Available</div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-96">
+                <ProjectHoursChart />
+              </div>
+            </CardContent>
+          </Card>
 
-          <div>
+          {/* Distribution Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
                   <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
                   Screen Type Distribution
+                  <div className="ml-auto text-sm font-normal text-slate-500">Pie & Bar Charts</div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-80">
                   <ScreenTypeChart />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                  <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full"></div>
+                  Complexity Analysis
+                  <div className="ml-auto text-sm font-normal text-slate-500">Donut & Radial Charts</div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ComplexityChart />
                 </div>
               </CardContent>
             </Card>

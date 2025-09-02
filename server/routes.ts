@@ -59,6 +59,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/dashboard/complexity-distribution', isAuthenticated, async (req, res) => {
+    try {
+      const data = await storage.getComplexityDistribution();
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching complexity distribution:", error);
+      res.status(500).json({ message: "Failed to fetch complexity distribution" });
+    }
+  });
+
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req, res) => {
     try {

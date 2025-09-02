@@ -73,6 +73,7 @@ export interface IStorage {
   getDashboardStats(): Promise<any>;
   getProjectHoursData(): Promise<any[]>;
   getScreenTypeDistribution(): Promise<any[]>;
+  getComplexityDistribution(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -376,6 +377,19 @@ export class DatabaseStorage implements IStorage {
       .from(screenTypeMaster)
       .leftJoin(estimationDetails, eq(screenTypeMaster.id, estimationDetails.screenTypeId))
       .groupBy(screenTypeMaster.id, screenTypeMaster.name)
+      .orderBy(desc(sql<number>`COUNT(${estimationDetails.id})`));
+  }
+
+  async getComplexityDistribution(): Promise<any[]> {
+    return await db
+      .select({
+        complexityName: complexityMaster.name,
+        count: sql<number>`COUNT(${estimationDetails.id})`,
+        totalHours: sql<number>`COALESCE(SUM(${estimationDetails.calculatedHours}), 0)`,
+      })
+      .from(complexityMaster)
+      .leftJoin(estimationDetails, eq(complexityMaster.id, estimationDetails.complexityId))
+      .groupBy(complexityMaster.id, complexityMaster.name)
       .orderBy(desc(sql<number>`COUNT(${estimationDetails.id})`));
   }
 }
