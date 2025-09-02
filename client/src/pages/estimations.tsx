@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Select,
   SelectContent,
@@ -16,7 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { Calculator, Plus, Trash2, Clock, CheckCircle2 } from "lucide-react";
+import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 import type { Project, ComplexityMaster, ScreenTypeMaster, Screen } from "@shared/schema";
 
 interface EstimationScreen {
@@ -36,6 +38,12 @@ export default function Estimations() {
   const [estimationName, setEstimationName] = useState("");
   const [versionNumber, setVersionNumber] = useState("");
   const [estimationScreens, setEstimationScreens] = useState<EstimationScreen[]>([]);
+  const [errors, setErrors] = useState<{
+    project?: string;
+    name?: string;
+    version?: string;
+    screens?: string;
+  }>({});
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -110,14 +118,26 @@ export default function Estimations() {
   });
 
   const addScreen = () => {
-    if (!projectScreens || projectScreens.length === 0) {
+    if (!selectedProjectId) {
       toast({
-        title: "No Screens Available",
-        description: "Please add screens to this project first",
+        title: "Select Project First",
+        description: "Please select a project before adding screens",
         variant: "destructive",
       });
       return;
     }
+
+    if (!projectScreens || projectScreens.length === 0) {
+      toast({
+        title: "No Screens Available",
+        description: "Please add screens to this project first using the Masters menu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Clear screens error when adding screen
+    setErrors(prev => ({ ...prev, screens: undefined }));
 
     const defaultComplexity = complexities?.[0];
     const defaultScreenType = screenTypes?.[0];
@@ -172,13 +192,40 @@ export default function Estimations() {
   const totalHours = estimationScreens.reduce((sum, screen) => sum + screen.hours, 0);
   const estimatedDays = Math.ceil(totalHours / 8);
 
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!selectedProjectId) {
+      newErrors.project = "Please select a project";
+    }
+    
+    if (!estimationName.trim()) {
+      newErrors.name = "Estimation name is required";
+    } else if (estimationName.trim().length < 3) {
+      newErrors.name = "Estimation name must be at least 3 characters";
+    }
+    
+    if (!versionNumber.trim()) {
+      newErrors.version = "Version number is required";
+    } else if (!/^v?\d+\.\d+(\.\d+)?$/.test(versionNumber.trim())) {
+      newErrors.version = "Version must be in format v1.0 or 1.0.0";
+    }
+    
+    if (estimationScreens.length === 0) {
+      newErrors.screens = "Please add at least one screen to the estimation";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedProjectId || !estimationName || !versionNumber || estimationScreens.length === 0) {
+    if (!validateForm()) {
       toast({
         title: "Validation Error",
-        description: "Please fill all required fields and add at least one screen",
+        description: "Please fix the errors below before submitting",
         variant: "destructive",
       });
       return;
@@ -221,6 +268,14 @@ export default function Estimations() {
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Link href="/">
+              <Button variant="outline" className="flex items-center gap-2 hover:bg-slate-100">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
           <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
             <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
               <Calculator className="h-8 w-8 text-white" />
@@ -243,8 +298,9 @@ export default function Estimations() {
                   <Select value={selectedProjectId} onValueChange={(value) => {
                     setSelectedProjectId(value);
                     setEstimationScreens([]);
+                    setErrors(prev => ({ ...prev, project: undefined }));
                   }}>
-                    <SelectTrigger className="bg-white border-slate-200">
+                    <SelectTrigger className={`bg-white border-slate-200 ${errors.project ? 'border-red-500' : ''}`}>
                       <SelectValue placeholder="Select project..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -255,26 +311,50 @@ export default function Estimations() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.project && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.project}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="estimationName" className="text-sm font-medium text-slate-700">Estimation Name *</Label>
                   <Input
                     id="estimationName"
                     value={estimationName}
-                    onChange={(e) => setEstimationName(e.target.value)}
-                    placeholder="Enter name..."
-                    className="bg-white border-slate-200"
+                    onChange={(e) => {
+                      setEstimationName(e.target.value);
+                      setErrors(prev => ({ ...prev, name: undefined }));
+                    }}
+                    placeholder="Enter estimation name..."
+                    className={`bg-white border-slate-200 ${errors.name ? 'border-red-500' : ''}`}
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="version" className="text-sm font-medium text-slate-700">Version *</Label>
                   <Input
                     id="version"
                     value={versionNumber}
-                    onChange={(e) => setVersionNumber(e.target.value)}
-                    placeholder="v1.0"
-                    className="bg-white border-slate-200"
+                    onChange={(e) => {
+                      setVersionNumber(e.target.value);
+                      setErrors(prev => ({ ...prev, version: undefined }));
+                    }}
+                    placeholder="v1.0 or 1.0.0"
+                    className={`bg-white border-slate-200 ${errors.version ? 'border-red-500' : ''}`}
                   />
+                  {errors.version && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.version}
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -295,6 +375,14 @@ export default function Estimations() {
                 </Button>
               </CardHeader>
               <CardContent>
+                {errors.screens && (
+                  <Alert className="mb-4 border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-600">
+                      {errors.screens}
+                    </AlertDescription>
+                  </Alert>
+                )}
                 {estimationScreens.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
                     <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
