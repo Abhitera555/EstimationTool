@@ -13,34 +13,38 @@ import Complexity from "@/pages/complexity";
 import ScreenTypes from "@/pages/screen-types";
 import Estimations from "@/pages/estimations";
 import History from "@/pages/history";
-import Navbar from "@/components/navbar";
+import Sidebar from "@/components/sidebar";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading || !isAuthenticated) {
     return (
-      <Switch>
-        <Route path="/" component={Landing} />
-        <Route component={NotFound} />
-      </Switch>
+      <div className="min-h-screen">
+        <Switch>
+          <Route path="/" component={Landing} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/projects" component={Projects} />
-        <Route path="/screens" component={Screens} />
-        <Route path="/complexity" component={Complexity} />
-        <Route path="/screen-types" component={ScreenTypes} />
-        <Route path="/estimations" component={Estimations} />
-        <Route path="/history" component={History} />
-        <Route component={NotFound} />
-      </Switch>
-    </>
+    <div className="flex h-screen bg-slate-50">
+      <Sidebar />
+      <div className="flex-1 overflow-auto">
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/projects" component={Projects} />
+          <Route path="/screens" component={Screens} />
+          <Route path="/complexity" component={Complexity} />
+          <Route path="/screen-types" component={ScreenTypes} />
+          <Route path="/estimations" component={Estimations} />
+          <Route path="/history" component={History} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+    </div>
   );
 }
 
