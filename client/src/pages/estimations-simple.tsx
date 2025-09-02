@@ -85,16 +85,25 @@ export default function SimplifiedEstimations() {
       await apiRequest("POST", "/api/estimations", data);
     },
     onSuccess: () => {
+      // Invalidate all estimation-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/estimations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      
       toast({
         title: "Success",
-        description: "Estimation created successfully",
+        description: "Estimation created successfully! Check the 'Estimations' page to see your new estimation.",
       });
+      
       // Reset form
       setSelectedProjectId("");
       setEstimationName("");
       setVersionNumber("");
       setEstimationItems([]);
+      
+      // Navigate to history page to see the new estimation
+      setTimeout(() => {
+        window.location.href = "/history";
+      }, 2000);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
