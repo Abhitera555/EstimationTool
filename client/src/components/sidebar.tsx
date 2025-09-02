@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -40,6 +41,11 @@ export default function Sidebar() {
   const { user, isLoading } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mastersExpanded, setMastersExpanded] = useState(false);
+  
+  // Force refresh user data once on mount to get latest role
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+  }, []);
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
