@@ -302,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const createEstimationSchema = z.object({
-    estimation: insertEstimationSchema,
+    estimation: insertEstimationSchema.omit({ createdBy: true }), // We'll add createdBy server-side
     details: z.array(insertEstimationDetailSchema.omit({ estimationId: true })),
   });
 
@@ -311,11 +311,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Request body:', req.body);
       console.log('User claims:', req.user?.claims);
       
+      // Extract and validate the data
       const { estimation, details } = createEstimationSchema.parse(req.body);
+      
+      // Get the user ID from the authenticated session
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated properly" });
+      }
+      
+      // Add the createdBy field
       const estimationWithUser = {
         ...estimation,
-        createdBy: req.user?.claims?.sub || 'anonymous',
+        createdBy: userId,
       };
+      
+      console.log('Final estimation object:', estimationWithUser);
       const newEstimation = await storage.createEstimation(estimationWithUser, details);
       res.status(201).json(newEstimation);
     } catch (error) {
