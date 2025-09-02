@@ -60,7 +60,8 @@ export const screens = pgTable("screens", {
 export const complexityMaster = pgTable("complexity_master", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
-  hours: integer("hours").notNull(),
+  hours: integer("hours").notNull(), // Base hours (kept for backward compatibility)
+  multiplier: decimal("multiplier", { precision: 3, scale: 2 }).notNull().default('1.00'),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -70,7 +71,8 @@ export const complexityMaster = pgTable("complexity_master", {
 export const screenTypeMaster = pgTable("screen_type_master", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
-  hours: integer("hours").notNull(),
+  hours: integer("hours").notNull(), // Base hours (kept for backward compatibility) 
+  multiplier: decimal("multiplier", { precision: 3, scale: 2 }).notNull().default('1.00'),
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -80,6 +82,7 @@ export const screenTypeMaster = pgTable("screen_type_master", {
 export const genericScreenTypes = pgTable("generic_screen_types", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull().unique(),
+  baseHours: integer("base_hours").notNull().default(4), // Base hours for this screen type
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
 });

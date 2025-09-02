@@ -43,7 +43,11 @@ export default function ScreenEstimationRow({
     const complexity = complexities.find(c => c.id === newComplexityId);
     const screenType = screenTypes.find(st => st.id === screen.screenTypeId);
     
-    const calculatedHours = (complexity?.hours || 0) + (screenType?.hours || 0);
+    // Proper estimation formula: Base Hours × Complexity Multiplier × Behavior Multiplier
+    const baseHours = 4; // Default base hours for generic screen
+    const complexityMultiplier = parseFloat(complexity?.multiplier || '1.00');
+    const behaviorMultiplier = parseFloat(screenType?.multiplier || '1.00');
+    const calculatedHours = Math.round(baseHours * complexityMultiplier * behaviorMultiplier);
     
     const updatedScreen = { 
       ...screen, 
@@ -58,7 +62,11 @@ export default function ScreenEstimationRow({
     const screenType = screenTypes.find(st => st.id === newScreenTypeId);
     const complexity = complexities.find(c => c.id === screen.complexityId);
     
-    const calculatedHours = (complexity?.hours || 0) + (screenType?.hours || 0);
+    // Proper estimation formula: Base Hours × Complexity Multiplier × Behavior Multiplier
+    const baseHours = 4; // Default base hours for generic screen
+    const complexityMultiplier = parseFloat(complexity?.multiplier || '1.00');
+    const behaviorMultiplier = parseFloat(screenType?.multiplier || '1.00');
+    const calculatedHours = Math.round(baseHours * complexityMultiplier * behaviorMultiplier);
     
     const updatedScreen = { 
       ...screen, 
