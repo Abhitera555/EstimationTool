@@ -82,68 +82,77 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2 flex items-center gap-2">
-            <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded flex items-center justify-center">
-              <ListChecks className="h-5 w-5 text-white" />
+          <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+              <ListChecks className="h-8 w-8 text-white" />
             </div>
             Dashboard Overview
           </h1>
+          <p className="text-slate-600 text-lg">Track your project estimations and performance metrics</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-l-4 border-l-blue-600 shadow-sm hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6 text-center">
-              <FolderOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold" data-testid="text-total-projects">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <FolderOpen className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-projects">
                 {stats?.totalProjects || 0}
               </div>
-              <p className="text-muted-foreground">Total Projects</p>
+              <p className="text-slate-600">Total Projects</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-green-600 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6 text-center">
-              <Tv className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold" data-testid="text-total-screens">
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Tv className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-screens">
                 {stats?.totalScreens || 0}
               </div>
-              <p className="text-muted-foreground">Total Screens</p>
+              <p className="text-slate-600">Total Screens</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-yellow-600 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6 text-center">
-              <Clock className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold" data-testid="text-total-hours">
+              <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Clock className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-hours">
                 {stats?.totalHours || 0}
               </div>
-              <p className="text-muted-foreground">Total Hours</p>
+              <p className="text-slate-600">Total Hours</p>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-purple-600 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-6 text-center">
-              <ListChecks className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <div className="text-2xl font-bold" data-testid="text-total-estimations">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <ListChecks className="h-6 w-6 text-white" />
+              </div>
+              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-estimations">
                 {stats?.totalEstimations || 0}
               </div>
-              <p className="text-muted-foreground">Estimations</p>
+              <p className="text-slate-600">Estimations</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="h-5 w-5 bg-blue-600 rounded"></div>
+                <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg"></div>
                   Project Estimation Hours
                 </CardTitle>
               </CardHeader>
@@ -156,10 +165,10 @@ export default function Home() {
           </div>
 
           <div>
-            <Card>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="h-5 w-5 bg-blue-600 rounded-full"></div>
+                <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
                   Screen Type Distribution
                 </CardTitle>
               </CardHeader>
@@ -173,15 +182,15 @@ export default function Home() {
         </div>
 
         {/* Recent Estimations */}
-        <Card>
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
+              <Clock className="h-6 w-6" />
               Recent Estimations
             </CardTitle>
             <Link href="/estimations">
-              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800" data-testid="button-new-estimation">
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-6 py-2 rounded-lg font-medium" data-testid="button-new-estimation">
+                <Plus className="h-4 w-4 mr-2" />
                 New Estimation
               </Button>
             </Link>
