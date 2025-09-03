@@ -55,6 +55,7 @@ interface EstimationDetail {
   screenName: string;
   complexity: string;
   screenType: string;
+  behavior?: string;
   hours: number;
 }
 
@@ -74,6 +75,7 @@ export default function Reports() {
   const [searchTerm, setSearchTerm] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [complexityFilter, setComplexityFilter] = useState("all");
+  const [behaviorFilter, setBehaviorFilter] = useState("all");
   const [selectedEstimation, setSelectedEstimation] = useState<EstimationReport | null>(null);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailData, setEmailData] = useState({
@@ -103,6 +105,13 @@ export default function Reports() {
     enabled: isAuthenticated,
   });
 
+  // Fetch all screen behaviors from master data
+  const { data: allScreenTypes } = useQuery({
+    queryKey: ["/api/screen-types"],
+    retry: false,
+    enabled: isAuthenticated,
+  });
+
   // Get unique projects for filtering - use master data + estimation data
   const projects = useMemo(() => {
     const projectsFromEstimations = estimations ? Array.from(new Set(estimations.map(e => e.projectName))) : [];
@@ -124,6 +133,17 @@ export default function Reports() {
     return allComplexityNames.sort();
   }, [estimations, allComplexities]);
 
+  // Get unique behaviors for filtering - use master data + estimation data
+  const behaviors = useMemo(() => {
+    const behaviorsFromEstimations = estimations ? 
+      Array.from(new Set(estimations.flatMap(e => e.details.map(d => d.behavior).filter(Boolean)))) : [];
+    const behaviorsFromMasters = allScreenTypes ? allScreenTypes.map((s: any) => s.name) : [];
+    
+    // Combine both sources and remove duplicates
+    const allBehaviorNames = Array.from(new Set([...behaviorsFromMasters, ...behaviorsFromEstimations]));
+    return allBehaviorNames.sort();
+  }, [estimations, allScreenTypes]);
+
   // Filter estimations based on search and filters
   const filteredEstimations = useMemo(() => {
     if (!estimations) return [];
@@ -137,9 +157,12 @@ export default function Reports() {
       const matchesComplexity = complexityFilter === "all" || 
                                estimation.details.some(d => d.complexity === complexityFilter);
       
-      return matchesSearch && matchesProject && matchesComplexity;
+      const matchesBehavior = behaviorFilter === "all" || 
+                             estimation.details.some(d => d.behavior === behaviorFilter);
+      
+      return matchesSearch && matchesProject && matchesComplexity && matchesBehavior;
     });
-  }, [estimations, searchTerm, projectFilter, complexityFilter]);
+  }, [estimations, searchTerm, projectFilter, complexityFilter, behaviorFilter]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
@@ -464,7 +487,7 @@ export default function Reports() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">Search</Label>
                 <div className="relative">
@@ -476,52 +499,130 @@ export default function Reports() {
                     className="pl-10"
                     data-testid="search-estimations"
                   />
+                  {searchTerm && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                      data-testid="cancel-search"
+                    >
+                      ✕
+                    </Button>
+                  )}
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">Project</Label>
-                <Select value={projectFilter} onValueChange={setProjectFilter}>
-                  <SelectTrigger data-testid="filter-project">
-                    <SelectValue placeholder="All Projects" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Projects</SelectItem>
-                    {projects.map(project => (
-                      <SelectItem key={project} value={project}>{project}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-1">
+                  <Select value={projectFilter} onValueChange={setProjectFilter}>
+                    <SelectTrigger data-testid="filter-project" className="flex-1">
+                      <SelectValue placeholder="All Projects" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {projects.map(project => (
+                        <SelectItem key={project} value={project}>{project}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {projectFilter !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setProjectFilter("all")}
+                      className="px-2"
+                      data-testid="cancel-project"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
               </div>
               
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-700">Complexity</Label>
-                <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-                  <SelectTrigger data-testid="filter-complexity">
-                    <SelectValue placeholder="All Complexities" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Complexities</SelectItem>
-                    {complexities.map(complexity => (
-                      <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-1">
+                  <Select value={complexityFilter} onValueChange={setComplexityFilter}>
+                    <SelectTrigger data-testid="filter-complexity" className="flex-1">
+                      <SelectValue placeholder="All Complexities" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Complexities</SelectItem>
+                      {complexities.map(complexity => (
+                        <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {complexityFilter !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setComplexityFilter("all")}
+                      className="px-2"
+                      data-testid="cancel-complexity"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">Actions</Label>
+                <Label className="text-sm font-medium text-slate-700">Screen Behavior</Label>
+                <div className="flex gap-1">
+                  <Select value={behaviorFilter} onValueChange={setBehaviorFilter}>
+                    <SelectTrigger data-testid="filter-behavior" className="flex-1">
+                      <SelectValue placeholder="All Behaviors" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Behaviors</SelectItem>
+                      {behaviors.map(behavior => (
+                        <SelectItem key={behavior} value={behavior}>{behavior}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {behaviorFilter !== "all" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setBehaviorFilter("all")}
+                      className="px-2"
+                      data-testid="cancel-behavior"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center border-t pt-4">
+              <div className="text-sm text-slate-600">
+                {filteredEstimations.length} estimation{filteredEstimations.length !== 1 ? 's' : ''} found
+              </div>
+              <div className="flex gap-2">
                 <Button 
                   variant="outline" 
                   onClick={() => {
                     setSearchTerm("");
                     setProjectFilter("all");
                     setComplexityFilter("all");
+                    setBehaviorFilter("all");
                   }}
-                  className="gap-2 w-full"
+                  className="gap-2"
                   data-testid="clear-filters"
                 >
-                  Clear Filters
+                  Clear All Filters
+                </Button>
+                <Button
+                  variant="default"
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  data-testid="apply-filters"
+                >
+                  Apply Filters
                 </Button>
               </div>
             </div>
