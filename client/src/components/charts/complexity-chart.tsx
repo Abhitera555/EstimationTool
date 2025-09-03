@@ -147,8 +147,8 @@ export default function ComplexityChart() {
         <RadialBarChart
           cx="50%"
           cy="50%"
-          innerRadius="20%"
-          outerRadius="80%"
+          innerRadius="25%"
+          outerRadius="75%"
           data={chartData}
         >
           <RadialBar
@@ -175,7 +175,7 @@ export default function ComplexityChart() {
             data={chartData}
             cx="50%"
             cy="50%"
-            outerRadius={85}
+            outerRadius={80}
             innerRadius={35}
             dataKey="value"
             label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
@@ -224,7 +224,7 @@ export default function ComplexityChart() {
       </div>
       
       {/* Chart */}
-      <ResponsiveContainer width="100%" height="85%">
+      <ResponsiveContainer width="100%" height="75%">
         {renderChart()}
       </ResponsiveContainer>
       
