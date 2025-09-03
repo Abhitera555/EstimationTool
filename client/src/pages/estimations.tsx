@@ -98,13 +98,18 @@ export default function Estimations() {
       queryClient.invalidateQueries({ queryKey: ["/api/estimations"] });
       toast({
         title: "Success",
-        description: "Estimation created successfully",
+        description: "Estimation created successfully! Redirecting to history...",
       });
       // Reset form
       setSelectedProjectId("");
       setEstimationName("");
       setVersionNumber("");
       setEstimationScreens([]);
+      
+      // Navigate to history page after a short delay
+      setTimeout(() => {
+        window.location.href = "/history";
+      }, 1500);
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
