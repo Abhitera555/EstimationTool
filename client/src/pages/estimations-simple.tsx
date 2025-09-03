@@ -75,10 +75,9 @@ export default function SimplifiedEstimations() {
     retry: false,
   });
 
-  const { data: projectScreens } = useQuery<Screen[]>({
-    queryKey: ["/api/projects", selectedProjectId, "screens"],
+  const { data: allScreens } = useQuery<Screen[]>({
+    queryKey: ["/api/screens"],
     retry: false,
-    enabled: !!selectedProjectId,
   });
 
 
@@ -371,7 +370,7 @@ export default function SimplifiedEstimations() {
                                 <SelectValue placeholder="Select screen..." />
                               </SelectTrigger>
                               <SelectContent>
-                                {projectScreens?.map((screen) => (
+                                {allScreens?.map((screen) => (
                                   <SelectItem key={screen.id} value={screen.name}>
                                     {screen.name}
                                   </SelectItem>
