@@ -89,19 +89,40 @@ export default function Reports() {
     enabled: isAuthenticated,
   });
 
-  // Get unique projects for filtering
-  const projects = useMemo(() => {
-    if (!estimations) return [];
-    const uniqueProjects = Array.from(new Set(estimations.map(e => e.projectName)));
-    return uniqueProjects;
-  }, [estimations]);
+  // Fetch all projects from master data
+  const { data: allProjects } = useQuery({
+    queryKey: ["/api/projects"],
+    retry: false,
+    enabled: isAuthenticated,
+  });
 
-  // Get unique complexities for filtering
+  // Fetch all complexities from master data
+  const { data: allComplexities } = useQuery({
+    queryKey: ["/api/complexity"],
+    retry: false,
+    enabled: isAuthenticated,
+  });
+
+  // Get unique projects for filtering - use master data + estimation data
+  const projects = useMemo(() => {
+    const projectsFromEstimations = estimations ? Array.from(new Set(estimations.map(e => e.projectName))) : [];
+    const projectsFromMasters = allProjects ? allProjects.map((p: any) => p.name) : [];
+    
+    // Combine both sources and remove duplicates
+    const allProjectNames = Array.from(new Set([...projectsFromMasters, ...projectsFromEstimations]));
+    return allProjectNames.sort();
+  }, [estimations, allProjects]);
+
+  // Get unique complexities for filtering - use master data + estimation data
   const complexities = useMemo(() => {
-    if (!estimations) return [];
-    const allComplexities = estimations.flatMap(e => e.details.map(d => d.complexity));
-    return Array.from(new Set(allComplexities));
-  }, [estimations]);
+    const complexitiesFromEstimations = estimations ? 
+      Array.from(new Set(estimations.flatMap(e => e.details.map(d => d.complexity)))) : [];
+    const complexitiesFromMasters = allComplexities ? allComplexities.map((c: any) => c.name) : [];
+    
+    // Combine both sources and remove duplicates
+    const allComplexityNames = Array.from(new Set([...complexitiesFromMasters, ...complexitiesFromEstimations]));
+    return allComplexityNames.sort();
+  }, [estimations, allComplexities]);
 
   // Filter estimations based on search and filters
   const filteredEstimations = useMemo(() => {
