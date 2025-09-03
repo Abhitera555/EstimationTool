@@ -1,0 +1,222 @@
+import passport from "passport";
+import { Express } from "express";
+import session from "express-session";
+import axios from "axios";
+import crypto from "crypto";
+import { storage } from "./storage";
+
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role?: string;
+    }
+  }
+}
+
+// --- Encryption helpers (same as Python/CryptoJS) ---
+function deriveKeyIv(password: Buffer, salt: Buffer): Buffer {
+  let keyIv = Buffer.alloc(0);
+  let prev = Buffer.alloc(0);
+  while (keyIv.length < 48) {
+    const hash = crypto.createHash("md5");
+    hash.update(prev);
+    hash.update(password);
+    hash.update(salt);
+    prev = Buffer.from(hash.digest());
+    keyIv = Buffer.concat([keyIv, prev]);
+  }
+  return keyIv;
+}
+
+function encryptPassword(password: string, key: string = "RevalKey"): string {
+  const salt = crypto.randomBytes(8);
+  const keyIv = deriveKeyIv(Buffer.from(key, "utf-8"), salt);
+  const derivedKey = keyIv.slice(0, 32);
+  const iv = keyIv.slice(32, 48);
+
+  const blockSize = 16;
+  const padLen = blockSize - (password.length % blockSize);
+  const padded = Buffer.concat([
+    Buffer.from(password, "utf-8"),
+    Buffer.alloc(padLen, padLen),
+  ]);
+
+  const cipher = crypto.createCipheriv("aes-256-cbc", derivedKey, iv);
+  cipher.setAutoPadding(false);
+
+  let encrypted = cipher.update(padded);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  const saltedPrefix = Buffer.from("Salted__", "utf-8");
+  const finalData = Buffer.concat([saltedPrefix, salt, encrypted]);
+
+  return finalData.toString("base64");
+}
+
+// --- RevalSys API Login ---
+async function revalsysLogin(username: string, password: string): Promise<any> {
+  const config = {
+    jwt_token_url: "https://revalposapi.revalerp.com/api/JWTToken",
+    login_url: "https://revalposapi.revalerp.com/api/Login",
+    site_url: "https://revalsys.revalerp.com",
+    country_code: "ind",
+    currency_code: "inr",
+    language_code: "eng",
+  };
+
+  const sessionId = crypto.randomUUID();
+  const jwtPayload = {
+    SessionID: sessionId,
+    SiteURL: config.site_url,
+    CountryCode: config.country_code,
+    CurrencyCode: config.currency_code,
+    LanguageCode: config.language_code,
+  };
+
+  const headers = {
+    "content-type": "application/json",
+    origin: config.site_url,
+  };
+
+  // Step 1: Get JWT token
+  const jwtRes = await axios.post(config.jwt_token_url, jwtPayload, {
+    headers,
+    timeout: 15000,
+  });
+
+  const jwtToken =
+    jwtRes.data.SecurityToken ||
+    jwtRes.data.JwtToken ||
+    (jwtRes.data.Data &&
+      jwtRes.data.Data[0] &&
+      (jwtRes.data.Data[0].JwtToken || jwtRes.data.Data[0].SecurityToken));
+
+  if (!jwtToken) throw new Error("Failed to obtain JWT token");
+
+  // Step 2: Encrypt password
+  const encryptedPassword = encryptPassword(password);
+
+  // Step 3: Login request
+  const loginPayload = {
+    UserName: username,
+    UserPassword: encryptedPassword,
+    CountryCode: config.country_code,
+    CurrencyCode: config.currency_code,
+    LanguageCode: config.language_code,
+  };
+
+  const loginRes = await axios.post(config.login_url, loginPayload, {
+    headers: { ...headers, authorization: `Bearer ${jwtToken}` },
+    timeout: 15000,
+  });
+
+  return loginRes.data;
+}
+
+// --- Setup Auth ---
+export function setupAuth(app: Express) {
+  const useHttps = process.env.USE_HTTPS === "true";
+
+  const sessionSettings: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || "fallback-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: useHttps,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "lax",
+    },
+    name: "connect.sid",
+  };
+
+  app.set("trust proxy", 1);
+  app.use(session(sessionSettings));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  passport.serializeUser((user: any, done) => done(null, user.id));
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
+  });
+
+  // --- Main Login ---
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password)
+        return res.status(400).json({ message: "Username and password required" });
+
+      const result = await revalsysLogin(username, password);
+
+      if (
+        result.ReturnCode === 0 &&
+        result.ReturnMessage === "success" &&
+        result.Data &&
+        result.Data.length > 0
+      ) {
+        const userData = result.Data[0];
+
+        let dbUser = await storage.getUserByEmail(username);
+        dbUser = await storage.upsertUser({
+          id: dbUser?.id,
+          email: username,
+          firstName: userData.FirstName || "Unknown",
+          lastName: userData.LastName || "",
+          isVerified: true,
+          password: dbUser?.password || null,
+          role: dbUser?.role || "user",
+        });
+
+        req.login(dbUser, (err) => {
+          if (err) return res.status(500).json({ message: "Session creation failed" });
+          res.status(200).json({
+            message: "Login successful",
+            user: {
+              id: dbUser.id,
+              email: username,
+              displayName: `${userData.FirstName || ""} ${userData.LastName || ""}`.trim(),
+              api_token: userData.JwtToken,
+            },
+          });
+        });
+      } else {
+        res.status(401).json({ message: result.ReturnMessage || "Authentication failed" });
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Login failed" });
+    }
+  });
+
+  // --- Logout ---
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) return res.status(500).json({ message: "Logout failed" });
+      res.clearCookie("connect.sid", { path: "/" });
+      res.status(200).json({ message: "Logout successful" });
+    });
+  });
+
+  // --- Current User ---
+  app.get("/api/auth/user", (req, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    res.json(req.user);
+  });
+}
+
+export const isAuthenticated = (req: any, res: any, next: any) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+  next();
+};
+ 

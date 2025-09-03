@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupEmailAuth, isAuthenticated } from "./email-auth";
+import { setupAuth, isAuthenticated } from "./revalsys-auth";
 import {
   insertProjectSchema,
   insertScreenSchema,
@@ -14,7 +14,7 @@ import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  setupEmailAuth(app);
+  setupAuth(app);
 
   // Auth routes are now handled in setupEmailAuth
 
