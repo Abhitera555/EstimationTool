@@ -216,24 +216,23 @@ export default function Estimations() {
   const validateForm = () => {
     const newErrors: typeof errors = {};
     
-    if (!selectedProjectId) {
-      newErrors.project = "Please select a project";
+    // Optional validation - only check if data is provided
+    if (estimationName.trim() && estimationName.trim().length < 2) {
+      newErrors.name = "Estimation name must be at least 2 characters";
     }
     
-    if (!estimationName.trim()) {
-      newErrors.name = "Estimation name is required";
-    } else if (estimationName.trim().length < 3) {
-      newErrors.name = "Estimation name must be at least 3 characters";
+    if (versionNumber.trim() && !/^v?\d+(\.\d+)*$/.test(versionNumber.trim())) {
+      newErrors.version = "Version format should be like v1.0 or 1.0.0";
     }
     
-    if (!versionNumber.trim()) {
-      newErrors.version = "Version number is required";
-    } else if (!/^v?\d+\.\d+(\.\d+)?$/.test(versionNumber.trim())) {
-      newErrors.version = "Version must be in format v1.0 or 1.0.0";
-    }
-    
-    if (estimationScreens.length === 0) {
-      newErrors.screens = "Please add at least one screen to the estimation";
+    // Only validate screens if they exist
+    if (estimationScreens.length > 0) {
+      const hasIncompleteScreen = estimationScreens.some(screen => 
+        !screen.screenId || !screen.complexity || !screen.screenType
+      );
+      if (hasIncompleteScreen) {
+        newErrors.screens = "Please complete all screen configurations";
+      }
     }
     
     setErrors(newErrors);
@@ -242,6 +241,12 @@ export default function Estimations() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Auto-generate missing values
+    const finalEstimationName = estimationName.trim() || 
+      `Estimation ${new Date().toLocaleDateString()}`;
+    const finalVersion = versionNumber.trim() || "1.0";
+    const finalProjectId = selectedProjectId || (projects?.[0]?.id.toString() || "1");
     
     if (!validateForm()) {
       toast({
@@ -253,10 +258,10 @@ export default function Estimations() {
     }
 
     const estimation = {
-      projectId: parseInt(selectedProjectId),
-      name: estimationName,
+      projectId: parseInt(finalProjectId),
+      name: finalEstimationName,
       totalHours,
-      versionNumber,
+      versionNumber: finalVersion,
     };
 
     const details = estimationScreens.map(screen => ({
@@ -297,25 +302,31 @@ export default function Estimations() {
               </Button>
             </Link>
           </div>
-          <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
-              <Calculator className="h-8 w-8 text-white" />
-            </div>
-            Create Estimation
-          </h1>
-          <p className="text-slate-600 text-lg">Configure your project screens and get instant hour calculations</p>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-slate-800 mb-4 flex items-center justify-center gap-3">
+              <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                <Calculator className="h-8 w-8 text-white" />
+              </div>
+              Create New Estimation
+            </h1>
+            <p className="text-slate-600 text-lg">Build accurate project estimations with our intelligent calculation engine</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Project Selection */}
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl font-semibold text-slate-800">Project Details</CardTitle>
+              <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                Project Information
+              </CardTitle>
+              <p className="text-sm text-slate-600 mt-1">Select your project and provide basic estimation details</p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="project" className="text-sm font-medium text-slate-700">Project *</Label>
+                  <Label htmlFor="project" className="text-sm font-medium text-slate-700">Project</Label>
                   <Select value={selectedProjectId} onValueChange={(value) => {
                     setSelectedProjectId(value);
                     setEstimationScreens([]);
@@ -340,7 +351,7 @@ export default function Estimations() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="estimationName" className="text-sm font-medium text-slate-700">Estimation Name *</Label>
+                  <Label htmlFor="estimationName" className="text-sm font-medium text-slate-700">Estimation Name</Label>
                   <Input
                     id="estimationName"
                     value={estimationName}
@@ -359,7 +370,7 @@ export default function Estimations() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="version" className="text-sm font-medium text-slate-700">Version *</Label>
+                  <Label htmlFor="version" className="text-sm font-medium text-slate-700">Version</Label>
                   <Input
                     id="version"
                     value={versionNumber}
@@ -385,7 +396,13 @@ export default function Estimations() {
           {selectedProjectId && (
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-slate-800">Configure Screens</CardTitle>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    Screen Configuration
+                  </CardTitle>
+                  <p className="text-sm text-slate-600 mt-1">Add and configure screens for accurate hour estimation</p>
+                </div>
                 <Button
                   type="button"
                   onClick={addScreen}
@@ -509,14 +526,20 @@ export default function Estimations() {
             </Card>
           )}
 
-          {/* Summary */}
+          {/* Summary - Show when screens exist */}
           {estimationScreens.length > 0 && (
             <Card className="shadow-xl border-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+              <CardHeader>
+                <CardTitle className="text-center text-white flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                  Estimation Summary
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2">{estimationScreens.length}</div>
-                    <p className="text-blue-100">Screens</p>
+                    <p className="text-blue-100">Screens Configured</p>
                   </div>
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2">{totalHours}</div>
@@ -524,7 +547,7 @@ export default function Estimations() {
                   </div>
                   <div className="text-center">
                     <div className="text-4xl font-bold mb-2">{estimatedDays}</div>
-                    <p className="text-blue-100">Days (8hrs/day)</p>
+                    <p className="text-blue-100">Estimated Days</p>
                   </div>
                 </div>
                 
@@ -548,6 +571,41 @@ export default function Estimations() {
                     )}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Create Empty Estimation Button - Show when no screens */}
+          {estimationScreens.length === 0 && (
+            <Card className="shadow-lg border-2 border-dashed border-slate-300 bg-slate-50/50">
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Calculator className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-700 mb-2">Ready to Create</h3>
+                  <p className="text-slate-500">You can create an estimation now and add screens later, or add screens first for a complete estimation.</p>
+                </div>
+                
+                <Button
+                  type="submit"
+                  size="lg"
+                  variant="outline"
+                  disabled={createEstimationMutation.isPending}
+                  className="px-8 py-4 text-lg font-semibold rounded-xl border-slate-300 hover:bg-slate-100"
+                >
+                  {createEstimationMutation.isPending ? (
+                    <>
+                      <Clock className="h-5 w-5 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                      Create Basic Estimation
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           )}

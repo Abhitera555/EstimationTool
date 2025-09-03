@@ -278,6 +278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/projects/:projectId/estimations', isAuthenticated, async (req, res) => {
     try {
       const projectId = parseInt(req.params.projectId);
+      if (isNaN(projectId)) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
       const estimations = await storage.getEstimationsByProject(projectId);
       res.json(estimations);
     } catch (error) {
@@ -289,6 +292,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/estimations/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid estimation ID" });
+      }
       const estimation = await storage.getEstimation(id);
       if (!estimation) {
         return res.status(404).json({ message: "Estimation not found" });
@@ -303,6 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/estimations/:id/details', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid estimation ID" });
+      }
       const details = await storage.getEstimationDetails(id);
       res.json(details);
     } catch (error) {
