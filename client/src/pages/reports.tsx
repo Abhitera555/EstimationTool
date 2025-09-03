@@ -444,53 +444,65 @@ export default function Reports() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                <Input
-                  placeholder="Search estimations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                  data-testid="search-estimations"
-                />
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search estimations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    data-testid="search-estimations"
+                  />
+                </div>
               </div>
               
-              <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger data-testid="filter-project">
-                  <SelectValue placeholder="Filter by Project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map(project => (
-                    <SelectItem key={project} value={project}>{project}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Project</Label>
+                <Select value={projectFilter} onValueChange={setProjectFilter}>
+                  <SelectTrigger data-testid="filter-project">
+                    <SelectValue placeholder="All Projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {projects.map(project => (
+                      <SelectItem key={project} value={project}>{project}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               
-              <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-                <SelectTrigger data-testid="filter-complexity">
-                  <SelectValue placeholder="Filter by Complexity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Complexities</SelectItem>
-                  {complexities.map(complexity => (
-                    <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Complexity</Label>
+                <Select value={complexityFilter} onValueChange={setComplexityFilter}>
+                  <SelectTrigger data-testid="filter-complexity">
+                    <SelectValue placeholder="All Complexities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Complexities</SelectItem>
+                    {complexities.map(complexity => (
+                      <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm("");
-                  setProjectFilter("all");
-                  setComplexityFilter("all");
-                }}
-                className="gap-2"
-                data-testid="clear-filters"
-              >
-                Clear Filters
-              </Button>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Actions</Label>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchTerm("");
+                    setProjectFilter("all");
+                    setComplexityFilter("all");
+                  }}
+                  className="gap-2 w-full"
+                  data-testid="clear-filters"
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
