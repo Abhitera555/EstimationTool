@@ -21,6 +21,7 @@ import {
   User,
   LogOut,
   Settings,
+  FileText,
 } from "lucide-react";
 import logoImage from "@assets/logo-2_1756874854818.jpg";
 
@@ -35,6 +36,10 @@ const mastersSubNavigation = [
   { name: "Screens", href: "/screens", icon: Tv },
   { name: "Complexity", href: "/complexity", icon: Sliders },
   { name: "Screen Types", href: "/screen-types", icon: Monitor },
+];
+
+const reportsNavigation = [
+  { name: "Reports", href: "/reports", icon: FileText },
 ];
 
 export default function Sidebar() {
@@ -199,6 +204,19 @@ export default function Sidebar() {
             </div>
           </>
         )}
+        
+        {/* Reports Navigation */}
+        <Separator />
+        <div className="space-y-2">
+          {!isCollapsed && (
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              Reports
+            </h2>
+          )}
+          {reportsNavigation.map((item) => (
+            <NavItem key={item.name} item={item} />
+          ))}
+        </div>
       </div>
 
       {/* User Profile */}

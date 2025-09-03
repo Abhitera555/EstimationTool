@@ -13,6 +13,7 @@ import Complexity from "@/pages/complexity";
 import ScreenTypes from "@/pages/screen-types";
 import Estimations from "@/pages/estimations-simple";
 import History from "@/pages/history";
+import Reports from "@/pages/reports";
 import Sidebar from "@/components/sidebar";
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
           <Route path="/screen-types" component={ScreenTypes} />
           <Route path="/estimations" component={Estimations} />
           <Route path="/history" component={History} />
+          <Route path="/reports" component={Reports} />
           <Route component={NotFound} />
         </Switch>
       </div>

@@ -311,6 +311,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all estimations with detailed breakdown for reports
+  app.get('/api/estimations/detailed', isAuthenticated, async (req, res) => {
+    try {
+      const estimations = await storage.getEstimationsWithDetails();
+      res.json(estimations);
+    } catch (error) {
+      console.error("Error fetching detailed estimations:", error);
+      res.status(500).json({ message: "Failed to fetch detailed estimations" });
+    }
+  });
+
   // Create a custom schema for API requests that excludes server-managed fields
   const createEstimationRequestSchema = z.object({
     estimation: z.object({

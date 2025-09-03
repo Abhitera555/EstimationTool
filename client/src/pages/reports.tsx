@@ -70,7 +70,7 @@ export default function Reports() {
   // Get unique projects for filtering
   const projects = useMemo(() => {
     if (!estimations) return [];
-    const uniqueProjects = [...new Set(estimations.map(e => e.projectName))];
+    const uniqueProjects = Array.from(new Set(estimations.map(e => e.projectName)));
     return uniqueProjects;
   }, [estimations]);
 
@@ -78,7 +78,7 @@ export default function Reports() {
   const complexities = useMemo(() => {
     if (!estimations) return [];
     const allComplexities = estimations.flatMap(e => e.details.map(d => d.complexity));
-    return [...new Set(allComplexities)];
+    return Array.from(new Set(allComplexities));
   }, [estimations]);
 
   // Filter estimations based on search and filters

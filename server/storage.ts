@@ -64,6 +64,7 @@ export interface IStorage {
 
   // Estimation operations
   getEstimations(): Promise<any[]>;
+  getEstimationsWithDetails(): Promise<any[]>;
   getEstimationsByProject(projectId: number): Promise<any[]>;
   getEstimation(id: number): Promise<any>;
   createEstimation(estimation: InsertEstimation, details: InsertEstimationDetail[]): Promise<Estimation>;
@@ -337,6 +338,50 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(complexityMaster, eq(estimationDetails.complexityId, complexityMaster.id))
       .leftJoin(screenTypeMaster, eq(estimationDetails.screenTypeId, screenTypeMaster.id))
       .where(eq(estimationDetails.estimationId, estimationId));
+  }
+
+  async getEstimationsWithDetails(): Promise<any[]> {
+    // Get all estimations with project info
+    const estimationsList = await db
+      .select({
+        id: estimations.id,
+        name: estimations.name,
+        projectName: projects.name,
+        versionNumber: estimations.versionNumber,
+        totalHours: estimations.totalHours,
+        createdAt: estimations.createdAt,
+      })
+      .from(estimations)
+      .leftJoin(projects, eq(estimations.projectId, projects.id))
+      .orderBy(desc(estimations.createdAt));
+
+    // Get details for each estimation
+    const result = await Promise.all(
+      estimationsList.map(async (estimation) => {
+        const details = await db
+          .select({
+            id: estimationDetails.id,
+            estimationId: estimationDetails.estimationId,
+            screenId: estimationDetails.screenId,
+            screenName: screens.name,
+            complexity: complexityMaster.name,
+            screenType: screenTypeMaster.name,
+            hours: estimationDetails.calculatedHours,
+          })
+          .from(estimationDetails)
+          .leftJoin(screens, eq(estimationDetails.screenId, screens.id))
+          .leftJoin(complexityMaster, eq(estimationDetails.complexityId, complexityMaster.id))
+          .leftJoin(screenTypeMaster, eq(estimationDetails.screenTypeId, screenTypeMaster.id))
+          .where(eq(estimationDetails.estimationId, estimation.id));
+
+        return {
+          ...estimation,
+          details,
+        };
+      })
+    );
+
+    return result;
   }
 
   // Dashboard stats
