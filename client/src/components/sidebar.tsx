@@ -228,7 +228,7 @@ export default function Sidebar() {
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">
+                <p className="text-sm font-medium text-slate-900 truncate mb-1">
                   {(user as any)?.firstName || (user as any)?.email?.split('@')[0] || 'User'}
                 </p>
                 <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
