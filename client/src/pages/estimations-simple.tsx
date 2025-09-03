@@ -75,10 +75,6 @@ export default function SimplifiedEstimations() {
     retry: false,
   });
 
-  const { data: genericScreenTypes, isLoading: genericScreenTypesLoading } = useQuery<GenericScreenType[]>({
-    queryKey: ["/api/generic-screen-types"],
-    retry: false,
-  });
 
   const createEstimationMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -226,7 +222,7 @@ export default function SimplifiedEstimations() {
     createEstimationMutation.mutate(estimationData);
   };
 
-  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading || genericScreenTypesLoading) {
+  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading) {
     return (
       <div className="min-h-full bg-white flex items-center justify-center">
         <div className="text-center">
@@ -369,7 +365,7 @@ export default function SimplifiedEstimations() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {genericScreenTypes?.map((screenType) => (
+                                {screenTypes?.map((screenType) => (
                                   <SelectItem key={screenType.id} value={screenType.name}>
                                     {screenType.name}
                                   </SelectItem>

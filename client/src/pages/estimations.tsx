@@ -79,11 +79,6 @@ export default function Estimations() {
     retry: false,
   });
 
-  const { data: genericScreenTypes, isLoading: genericScreenTypesLoading } = useQuery<GenericScreenType[]>({
-    queryKey: ["/api/generic-screen-types"],
-    retry: false,
-  });
-
   const { data: projectScreens } = useQuery<Screen[]>({
     queryKey: ["/api/projects", selectedProjectId, "screens"],
     retry: false,
@@ -187,10 +182,10 @@ export default function Estimations() {
       
       // Use Smart Estimation Engine with interdependency awareness
       const selectedScreen = projectScreens?.find(s => s.id === updatedScreens[index].screenId);
-      const genericScreenType = genericScreenTypes?.find(gst => 
+      const genericScreenType = screenTypes?.find(gst => 
         selectedScreen?.name.toLowerCase().includes(gst.name.toLowerCase()) ||
         gst.name.toLowerCase().includes('form') // Default fallback
-      ) || genericScreenTypes?.[0];
+      ) || screenTypes?.[0];
       
       if (complexity && screenType && complexities && screenTypes && genericScreenType) {
         const complexityData = complexities.find(c => c.name === complexity);
@@ -279,7 +274,7 @@ export default function Estimations() {
     createEstimationMutation.mutate({ estimation, details });
   };
 
-  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading || genericScreenTypesLoading) {
+  if (isLoading || projectsLoading || complexitiesLoading || screenTypesLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
         <div className="container mx-auto max-w-4xl">
