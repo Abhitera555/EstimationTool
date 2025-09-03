@@ -386,7 +386,7 @@ export default function SimplifiedEstimations() {
                               onValueChange={(value) => updateEstimationItem(item.id, 'complexity', value)}
                             >
                               <SelectTrigger className="bg-white border-slate-200">
-                                <SelectValue />
+                                <SelectValue placeholder="Select complexity..." />
                               </SelectTrigger>
                               <SelectContent>
                                 {complexities?.map((complexity) => (
@@ -405,7 +405,7 @@ export default function SimplifiedEstimations() {
                               onValueChange={(value) => updateEstimationItem(item.id, 'screenTypeName', value)}
                             >
                               <SelectTrigger className="bg-white border-slate-200">
-                                <SelectValue />
+                                <SelectValue placeholder="Select behavior..." />
                               </SelectTrigger>
                               <SelectContent>
                                 {screenTypes?.map((screenType) => (
