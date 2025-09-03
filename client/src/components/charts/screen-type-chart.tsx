@@ -155,8 +155,8 @@ export default function ScreenTypeChart() {
             data={chartData}
             cx="50%"
             cy="50%"
-            outerRadius={90}
-            innerRadius={40}
+            outerRadius={80}
+            innerRadius={35}
             dataKey="value"
             label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
             labelLine={false}
@@ -178,7 +178,7 @@ export default function ScreenTypeChart() {
       return (
         <BarChart 
           data={chartData} 
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
         >
           <defs>
             {chartData.map((_, index) => (
@@ -241,7 +241,7 @@ export default function ScreenTypeChart() {
       </div>
       
       {/* Chart */}
-      <ResponsiveContainer width="100%" height="85%">
+      <ResponsiveContainer width="100%" height="75%">
         {renderChart()}
       </ResponsiveContainer>
       
