@@ -389,8 +389,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Raw request data:', JSON.stringify(requestData, null, 2));
       
       // Get the user ID from the authenticated session
-      const userId = req.user?.claims?.sub;
+      const userId = req.user?.id;
       console.log('User ID from session:', userId);
+      console.log('Full user object:', req.user);
       
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated properly" });
