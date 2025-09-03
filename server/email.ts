@@ -1,3 +1,8 @@
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
+
 // @ts-ignore - SendGrid module
 const sgMail = require('@sendgrid/mail');
 

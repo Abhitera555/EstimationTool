@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import * as client from "openid-client";
 import { Strategy, type VerifyFunction } from "openid-client/passport";
 
@@ -7,6 +8,9 @@ import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+
+// Load environment variables from .env file
+dotenv.config();
 
 if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
