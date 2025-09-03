@@ -22,6 +22,7 @@ import {
   LogOut,
   Settings,
 } from "lucide-react";
+import logoImage from "@assets/logo-2_1756874854818.jpg";
 
 const mainNavigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -98,8 +99,8 @@ export default function Sidebar() {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
-                <Calculator className="h-5 w-5 text-white" />
+              <div className="w-9 h-9 rounded-xl overflow-hidden">
+                <img src={logoImage} alt="EstimateFlow Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <h1 className="font-bold text-slate-800">EstimateFlow</h1>
@@ -108,8 +109,8 @@ export default function Sidebar() {
             </div>
           )}
           {isCollapsed && (
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl mx-auto">
-              <Calculator className="h-5 w-5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden mx-auto">
+              <img src={logoImage} alt="EstimateFlow Logo" className="w-full h-full object-cover" />
             </div>
           )}
           <Button
