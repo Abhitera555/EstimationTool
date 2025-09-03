@@ -181,9 +181,7 @@ export default function SimplifiedEstimations() {
       newErrors.name = "Estimation name must be at least 3 characters";
     }
     
-    if (!versionNumber.trim()) {
-      newErrors.version = "Version number is required";
-    } else if (!/^v?\d+\.\d+(\.\d+)?$/.test(versionNumber.trim())) {
+    if (versionNumber.trim() && !/^v?\d+\.\d+(\.\d+)?$/.test(versionNumber.trim())) {
       newErrors.version = "Version must be in format v1.0 or 1.0.0";
     }
     
@@ -304,7 +302,7 @@ export default function SimplifiedEstimations() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="version" className="text-sm font-medium text-slate-700">Version *</Label>
+                    <Label htmlFor="version" className="text-sm font-medium text-slate-700">Version</Label>
                     <Input
                       id="version"
                       value={versionNumber}
