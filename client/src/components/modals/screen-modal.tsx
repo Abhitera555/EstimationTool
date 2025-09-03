@@ -53,13 +53,15 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
         projectId: screen.projectId.toString(),
       });
     } else {
+      // Auto-select first available project for new screens
+      const firstProjectId = projects?.[0]?.id?.toString() || projectId?.toString() || "";
       setFormData({
         name: "",
         description: "",
-        projectId: projectId?.toString() || "",
+        projectId: firstProjectId,
       });
     }
-  }, [screen, isOpen, projectId]);
+  }, [screen, isOpen, projectId, projects]);
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -117,10 +119,10 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
       });
       return;
     }
-    if (!screen && !formData.projectId) {
+    if (!screen && !formData.projectId && projects?.length === 0) {
       toast({
-        title: "Validation Error",
-        description: "Project selection is required",
+        title: "Error",
+        description: "No projects available. Please create a project first.",
         variant: "destructive",
       });
       return;
@@ -144,24 +146,6 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!screen && (
-            <div className="space-y-2">
-              <Label htmlFor="project">Project *</Label>
-              <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
-                <SelectTrigger data-testid="select-project">
-                  <SelectValue placeholder="Select a project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects?.map((project: any) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="name">Screen Name *</Label>
             <Input
