@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
-import type { Project, ComplexityMaster, ScreenTypeMaster, GenericScreenType } from "@shared/schema";
+import type { Project, ComplexityMaster, ScreenTypeMaster, GenericScreenType, Screen } from "@shared/schema";
 
 interface EstimationItem {
   id: string; // unique identifier for React keys
@@ -73,6 +73,12 @@ export default function SimplifiedEstimations() {
   const { data: screenTypes, isLoading: screenTypesLoading } = useQuery<ScreenTypeMaster[]>({
     queryKey: ["/api/screen-types"],
     retry: false,
+  });
+
+  const { data: projectScreens } = useQuery<Screen[]>({
+    queryKey: ["/api/projects", selectedProjectId, "screens"],
+    retry: false,
+    enabled: !!selectedProjectId,
   });
 
 
@@ -356,18 +362,18 @@ export default function SimplifiedEstimations() {
                       <div key={item.id} className="bg-slate-50 rounded-xl p-6 border border-slate-200">
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-slate-700">Screen Type</Label>
+                            <Label className="text-sm font-medium text-slate-700">Screen</Label>
                             <Select 
                               value={item.screenType} 
                               onValueChange={(value) => updateEstimationItem(item.id, 'screenType', value)}
                             >
                               <SelectTrigger className="bg-white border-slate-200">
-                                <SelectValue />
+                                <SelectValue placeholder="Select screen..." />
                               </SelectTrigger>
                               <SelectContent>
-                                {screenTypes?.map((screenType) => (
-                                  <SelectItem key={screenType.id} value={screenType.name}>
-                                    {screenType.name}
+                                {projectScreens?.map((screen) => (
+                                  <SelectItem key={screen.id} value={screen.name}>
+                                    {screen.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
