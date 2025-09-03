@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
@@ -29,6 +36,13 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    projectId: projectId || "",
+  });
+
+  // Fetch projects for the dropdown when creating new screens
+  const { data: projects } = useQuery({
+    queryKey: ["/api/projects"],
+    enabled: !screen, // Only fetch when creating new screen
   });
 
   useEffect(() => {
@@ -36,27 +50,34 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
       setFormData({
         name: screen.name,
         description: screen.description || "",
+        projectId: screen.projectId.toString(),
       });
     } else {
       setFormData({
         name: "",
         description: "",
+        projectId: projectId?.toString() || "",
       });
     }
-  }, [screen, isOpen]);
+  }, [screen, isOpen, projectId]);
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       if (screen) {
-        return await apiRequest("PUT", `/api/screens/${screen.id}`, data);
+        return await apiRequest("PUT", `/api/screens/${screen.id}`, {
+          name: data.name,
+          description: data.description,
+        });
       } else {
         return await apiRequest("POST", "/api/screens", {
-          ...data,
-          projectId,
+          name: data.name,
+          description: data.description,
+          projectId: parseInt(data.projectId),
         });
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/screens"] });
       if (projectId) {
         queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId.toString(), "screens"] });
       }
@@ -96,11 +117,19 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
       });
       return;
     }
+    if (!screen && !formData.projectId) {
+      toast({
+        title: "Validation Error",
+        description: "Project selection is required",
+        variant: "destructive",
+      });
+      return;
+    }
     mutation.mutate(formData);
   };
 
   const handleClose = () => {
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", projectId: "" });
     onClose();
   };
 
@@ -115,6 +144,24 @@ export default function ScreenModal({ isOpen, onClose, screen, projectId }: Scre
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!screen && (
+            <div className="space-y-2">
+              <Label htmlFor="project">Project *</Label>
+              <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
+                <SelectTrigger data-testid="select-project">
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects?.map((project: any) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="name">Screen Name *</Label>
             <Input

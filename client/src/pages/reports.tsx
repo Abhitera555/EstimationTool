@@ -115,7 +115,7 @@ export default function Reports() {
   // Get unique projects for filtering - use master data + estimation data
   const projects = useMemo(() => {
     const projectsFromEstimations = estimations ? Array.from(new Set(estimations.map(e => e.projectName))) : [];
-    const projectsFromMasters = allProjects ? allProjects.map((p: any) => p.name) : [];
+    const projectsFromMasters = allProjects ? (allProjects as any[]).map((p: any) => p.name) : [];
     
     // Combine both sources and remove duplicates
     const allProjectNames = Array.from(new Set([...projectsFromMasters, ...projectsFromEstimations]));
@@ -126,7 +126,7 @@ export default function Reports() {
   const complexities = useMemo(() => {
     const complexitiesFromEstimations = estimations ? 
       Array.from(new Set(estimations.flatMap(e => e.details.map(d => d.complexity)))) : [];
-    const complexitiesFromMasters = allComplexities ? allComplexities.map((c: any) => c.name) : [];
+    const complexitiesFromMasters = allComplexities ? (allComplexities as any[]).map((c: any) => c.name) : [];
     
     // Combine both sources and remove duplicates
     const allComplexityNames = Array.from(new Set([...complexitiesFromMasters, ...complexitiesFromEstimations]));
@@ -137,7 +137,7 @@ export default function Reports() {
   const behaviors = useMemo(() => {
     const behaviorsFromEstimations = estimations ? 
       Array.from(new Set(estimations.flatMap(e => e.details.map(d => d.behavior).filter(Boolean)))) : [];
-    const behaviorsFromMasters = allScreenTypes ? allScreenTypes.map((s: any) => s.name) : [];
+    const behaviorsFromMasters = allScreenTypes ? (allScreenTypes as any[]).map((s: any) => s.name) : [];
     
     // Combine both sources and remove duplicates
     const allBehaviorNames = Array.from(new Set([...behaviorsFromMasters, ...behaviorsFromEstimations]));
