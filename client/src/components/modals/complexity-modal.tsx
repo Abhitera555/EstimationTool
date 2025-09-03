@@ -96,10 +96,10 @@ export default function ComplexityModal({ isOpen, onClose, complexity }: Complex
     }
 
     const hours = parseInt(formData.hours);
-    if (isNaN(hours) || hours <= 0) {
+    if (isNaN(hours) || hours < 0) {
       toast({
         title: "Validation Error",
-        description: "Hours must be a positive number",
+        description: "Hours must be a number greater than or equal to 0",
         variant: "destructive",
       });
       return;
@@ -145,7 +145,7 @@ export default function ComplexityModal({ isOpen, onClose, complexity }: Complex
             <Input
               id="hours"
               type="number"
-              min="1"
+              min="0"
               value={formData.hours}
               onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
               placeholder="Enter number of hours"
