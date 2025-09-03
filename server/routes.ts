@@ -322,6 +322,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email reports route
+  app.post('/api/reports/email', isAuthenticated, async (req: any, res) => {
+    try {
+      const { to, subject, message, reportData } = req.body;
+      
+      if (!to || !subject) {
+        return res.status(400).json({ message: "Missing required fields: to, subject" });
+      }
+
+      // Import email functions
+      const { sendEmail, generateReportHTML } = await import('./email');
+      
+      // Generate HTML content
+      const htmlContent = generateReportHTML(reportData);
+      
+      // Send email
+      await sendEmail({
+        to,
+        subject,
+        text: message,
+        html: htmlContent
+      });
+      
+      res.json({ message: "Email sent successfully" });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      if (error.message?.includes('SENDGRID_API_KEY')) {
+        res.status(503).json({ message: "Email service not configured. Please contact administrator." });
+      } else {
+        res.status(500).json({ message: "Failed to send email" });
+      }
+    }
+  });
+
   // Create a custom schema for API requests that excludes server-managed fields
   const createEstimationRequestSchema = z.object({
     estimation: z.object({

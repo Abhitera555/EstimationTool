@@ -1,9 +1,20 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Select,
   SelectContent,
@@ -20,6 +31,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   FileText, 
   Download, 
@@ -29,7 +42,9 @@ import {
   Clock,
   BarChart3,
   Eye,
-  Printer
+  Printer,
+  Mail,
+  Send
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -55,10 +70,17 @@ interface EstimationReport {
 
 export default function Reports() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [complexityFilter, setComplexityFilter] = useState("all");
   const [selectedEstimation, setSelectedEstimation] = useState<EstimationReport | null>(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "Estimation Report",
+    message: "Please find the attached estimation report."
+  });
 
   // Fetch estimations with details
   const { data: estimations, isLoading: estimationsLoading } = useQuery<EstimationReport[]>({
@@ -110,8 +132,61 @@ export default function Reports() {
     return { totalEstimations, totalHours, avgHours, totalScreens };
   }, [filteredEstimations]);
 
-  const handleExportPDF = () => {
-    window.print();
+  const handleExportPDF = async () => {
+    try {
+      // Generate PDF using the browser's print functionality with PDF settings
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+      
+      // Clone the current page content
+      const currentContent = document.documentElement.outerHTML;
+      
+      // Create a clean PDF version
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Estimation Report - ${format(new Date(), 'dd-MM-yyyy')}</title>
+          <style>
+            @media print {
+              body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+              .print\\:hidden { display: none !important; }
+              .page-break { page-break-before: always; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f5f5f5; }
+              .summary-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+              .gradient-bg { background: #f8f9fa !important; color: #333 !important; }
+              h1, h2, h3 { color: #333; }
+              .badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+              .badge-secondary { background: #e2e8f0; }
+              .badge-destructive { background: #fee2e2; color: #dc2626; }
+              .badge-default { background: #dbeafe; color: #1d4ed8; }
+            }
+          </style>
+        </head>
+        <body>
+          ${document.querySelector('.container')?.innerHTML || ''}
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      
+      // Trigger print dialog
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExportCSV = () => {
@@ -143,6 +218,55 @@ export default function Reports() {
     link.download = `estimation-reports-${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Email mutation
+  const emailMutation = useMutation({
+    mutationFn: async (emailData: any) => {
+      return await apiRequest("POST", "/api/reports/email", emailData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Report sent successfully via email",
+      });
+      setEmailDialogOpen(false);
+      setEmailData({
+        to: "",
+        subject: "Estimation Report",
+        message: "Please find the attached estimation report."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send email",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendEmail = async () => {
+    if (!emailData.to.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter recipient email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepare report data
+    const reportData = {
+      ...emailData,
+      reportData: {
+        summaryStats,
+        estimations: filteredEstimations,
+        generatedAt: new Date().toISOString()
+      }
+    };
+
+    emailMutation.mutate(reportData);
   };
 
   if (isLoading || estimationsLoading) {
@@ -184,8 +308,76 @@ export default function Reports() {
             </Button>
             <Button onClick={handleExportPDF} className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600">
               <Printer className="h-4 w-4" />
-              Print Report
+              Download PDF
             </Button>
+            <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Mail className="h-4 w-4" />
+                  Send Email
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Send Report via Email</DialogTitle>
+                  <DialogDescription>
+                    Send the current estimation report to an email address
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="email-to">Recipient Email</Label>
+                    <Input
+                      id="email-to"
+                      type="email"
+                      placeholder="recipient@example.com"
+                      value={emailData.to}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, to: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email-subject">Subject</Label>
+                    <Input
+                      id="email-subject"
+                      value={emailData.subject}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, subject: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email-message">Message</Label>
+                    <Textarea
+                      id="email-message"
+                      rows={3}
+                      value={emailData.message}
+                      onChange={(e) => setEmailData(prev => ({ ...prev, message: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setEmailDialogOpen(false)}
+                    disabled={emailMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSendEmail}
+                    disabled={emailMutation.isPending}
+                    className="gap-2"
+                  >
+                    {emailMutation.isPending ? (
+                      "Sending..."
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Send Email
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
