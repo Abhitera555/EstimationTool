@@ -25,10 +25,13 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations (required for Email Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(userData: { email: string; firstName: string; lastName: string; profileImageUrl?: string | null }): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
 
   // Project operations
@@ -82,6 +85,25 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: { email: string; firstName: string; lastName: string; profileImageUrl?: string | null }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        id: randomUUID(),
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+      })
+      .returning();
     return user;
   }
 

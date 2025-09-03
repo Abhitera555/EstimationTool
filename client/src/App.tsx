@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
+import AuthPage from "@/pages/auth-page";
 import Home from "@/pages/home";
 import Projects from "@/pages/projects";
 import Screens from "@/pages/screens";
@@ -19,12 +20,21 @@ import Sidebar from "@/components/sidebar";
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading || !isAuthenticated) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen">
         <Switch>
-          <Route path="/" component={Landing} />
-          <Route component={NotFound} />
+          <Route path="/" component={AuthPage} />
+          <Route path="/landing" component={Landing} />
+          <Route component={AuthPage} />
         </Switch>
       </div>
     );
