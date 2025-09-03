@@ -118,6 +118,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Screen routes
+  app.get('/api/screens', isAuthenticated, async (req, res) => {
+    try {
+      const screens = await storage.getAllScreens();
+      res.json(screens);
+    } catch (error) {
+      console.error("Error fetching all screens:", error);
+      res.status(500).json({ message: "Failed to fetch screens" });
+    }
+  });
+
   app.get('/api/projects/:projectId/screens', isAuthenticated, async (req, res) => {
     try {
       const projectId = parseInt(req.params.projectId);

@@ -3,27 +3,33 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
-import { Tv, Plus, Edit, Trash2, FolderOpen } from "lucide-react";
+import { Tv, Plus, Edit, Trash2, Search, Power, PowerOff } from "lucide-react";
 import ScreenModal from "@/components/modals/screen-modal";
-import type { Screen, Project } from "@shared/schema";
+import type { Screen } from "@shared/schema";
+
+interface ScreenWithProject extends Screen {
+  projectName?: string;
+  isActive: boolean;
+}
 
 export default function Screens() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScreen, setEditingScreen] = useState<Screen | null>(null);
 
@@ -42,15 +48,9 @@ export default function Screens() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
-    queryKey: ["/api/projects"],
+  const { data: screens, isLoading: screensLoading, error } = useQuery<ScreenWithProject[]>({
+    queryKey: ["/api/screens"],
     retry: false,
-  });
-
-  const { data: screens, isLoading: screensLoading, error } = useQuery<Screen[]>({
-    queryKey: ["/api/projects", selectedProjectId, "screens"],
-    retry: false,
-    enabled: !!selectedProjectId,
   });
 
   const deleteMutation = useMutation({
@@ -58,7 +58,7 @@ export default function Screens() {
       await apiRequest("DELETE", `/api/screens/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", selectedProjectId, "screens"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/screens"] });
       toast({
         title: "Success",
         description: "Screen deleted successfully",
@@ -79,6 +79,37 @@ export default function Screens() {
       toast({
         title: "Error",
         description: "Failed to delete screen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      await apiRequest("PUT", `/api/screens/${id}`, { isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/screens"] });
+      toast({
+        title: "Success",
+        description: "Screen status updated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update screen status",
         variant: "destructive",
       });
     },
@@ -110,25 +141,24 @@ export default function Screens() {
   };
 
   const handleAddNew = () => {
-    if (!selectedProjectId) {
-      toast({
-        title: "No Project Selected",
-        description: "Please select a project first",
-        variant: "destructive",
-      });
-      return;
-    }
     setEditingScreen(null);
     setIsModalOpen(true);
   };
 
-  const filteredScreens = screens?.filter(screen =>
-    screen.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const handleToggleActive = (screen: ScreenWithProject) => {
+    toggleActiveMutation.mutate({ 
+      id: screen.id, 
+      isActive: !screen.isActive 
+    });
+  };
+
+  const filteredScreens = screens?.filter(screen => 
+    screen.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (screen.description && screen.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (screen.projectName && screen.projectName.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
-  const selectedProject = projects?.find(p => p.id.toString() === selectedProjectId);
-
-  if (isLoading || projectsLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="container mx-auto">
@@ -155,11 +185,10 @@ export default function Screens() {
               </div>
               Screen Master
             </h1>
-            <p className="text-slate-600 text-lg">Define screens for each project to enable accurate estimations</p>
+            <p className="text-slate-600 text-lg">Manage all screens across projects with active/inactive status</p>
           </div>
           <Button 
             onClick={handleAddNew}
-            disabled={!selectedProjectId}
             className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 px-6 py-3 rounded-lg font-medium shadow-lg"
             data-testid="button-add-screen"
           >
@@ -168,131 +197,124 @@ export default function Screens() {
           </Button>
         </div>
 
-        {/* Project Selection */}
-        <Card className="mb-8 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+        {/* Screens List */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-xl font-semibold text-slate-800">
-              <FolderOpen className="h-6 w-6" />
-              Select Project
-            </CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardTitle className="text-xl font-semibold text-slate-800">All Screens</CardTitle>
+              <div className="w-full sm:w-64 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Input
+                  placeholder="Search screens..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-white border-slate-200 pl-10"
+                  data-testid="input-search-screens"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="w-full max-w-md">
-              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-                <SelectTrigger className="bg-white border-slate-200" data-testid="select-project">
-                  <SelectValue placeholder="Choose a project..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects?.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.name}
-                    </SelectItem>
+            {screensLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-16 bg-muted rounded animate-pulse"></div>
+                ))}
+              </div>
+            ) : filteredScreens.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Tv className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No screens found</p>
+                <p className="text-sm">Add your first screen to get started</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Screen Name</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created Date</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredScreens.map((screen) => (
+                    <TableRow key={screen.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell>
+                        <strong data-testid={`text-screen-name-${screen.id}`}>
+                          {screen.name}
+                        </strong>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {screen.projectName || 'Unknown Project'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell data-testid={`text-screen-description-${screen.id}`}>
+                        {screen.description || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={screen.isActive ? "default" : "secondary"}
+                          className={screen.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
+                        >
+                          {screen.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell data-testid={`text-screen-date-${screen.id}`}>
+                        {new Date(screen.createdAt!).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(screen)}
+                            data-testid={`button-edit-${screen.id}`}
+                            title="Edit Screen"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleActive(screen)}
+                            disabled={toggleActiveMutation.isPending}
+                            data-testid={`button-toggle-${screen.id}`}
+                            title={screen.isActive ? "Deactivate" : "Activate"}
+                          >
+                            {screen.isActive ? 
+                              <PowerOff className="h-4 w-4 text-red-600" /> : 
+                              <Power className="h-4 w-4 text-green-600" />
+                            }
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(screen)}
+                            disabled={deleteMutation.isPending}
+                            data-testid={`button-delete-${screen.id}`}
+                            title="Delete Screen"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedProject && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Managing screens for: <strong>{selectedProject.name}</strong>
-              </p>
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>
-
-        {/* Screens List */}
-        {selectedProjectId && (
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <CardTitle className="text-xl font-semibold text-slate-800">Screens List</CardTitle>
-                <div className="w-full sm:w-64">
-                  <Input
-                    placeholder="Search screens..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-white border-slate-200"
-                    data-testid="input-search-screens"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {screensLoading ? (
-                <div className="space-y-4">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-16 bg-muted rounded animate-pulse"></div>
-                  ))}
-                </div>
-              ) : filteredScreens.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Tv className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No screens found</p>
-                  <p className="text-sm">Add your first screen to get started</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-3 font-semibold">Screen Name</th>
-                        <th className="text-left p-3 font-semibold">Description</th>
-                        <th className="text-left p-3 font-semibold">Created Date</th>
-                        <th className="text-left p-3 font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredScreens.map((screen) => (
-                        <tr key={screen.id} className="border-b hover:bg-muted/30 transition-colors">
-                          <td className="p-3">
-                            <strong data-testid={`text-screen-name-${screen.id}`}>
-                              {screen.name}
-                            </strong>
-                          </td>
-                          <td className="p-3" data-testid={`text-screen-description-${screen.id}`}>
-                            {screen.description || '-'}
-                          </td>
-                          <td className="p-3" data-testid={`text-screen-date-${screen.id}`}>
-                            {new Date(screen.createdAt!).toLocaleDateString()}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(screen)}
-                                data-testid={`button-edit-${screen.id}`}
-                                title="Edit Screen"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(screen)}
-                                disabled={deleteMutation.isPending}
-                                data-testid={`button-delete-${screen.id}`}
-                                title="Delete Screen"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
         {/* Screen Modal */}
         <ScreenModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           screen={editingScreen}
-          projectId={selectedProjectId ? parseInt(selectedProjectId) : undefined}
         />
       </div>
     </div>

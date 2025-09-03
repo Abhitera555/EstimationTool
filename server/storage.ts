@@ -39,6 +39,7 @@ export interface IStorage {
   deleteProject(id: number): Promise<void>;
 
   // Screen operations
+  getAllScreens(): Promise<any[]>;
   getScreensByProject(projectId: number): Promise<Screen[]>;
   getScreen(id: number): Promise<Screen | undefined>;
   createScreen(screen: InsertScreen): Promise<Screen>;
@@ -131,6 +132,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Screen operations
+  async getAllScreens(): Promise<any[]> {
+    return await db
+      .select({
+        id: screens.id,
+        projectId: screens.projectId,
+        name: screens.name,
+        description: screens.description,
+        isActive: screens.isActive,
+        createdAt: screens.createdAt,
+        projectName: projects.name,
+      })
+      .from(screens)
+      .leftJoin(projects, eq(screens.projectId, projects.id))
+      .orderBy(screens.name);
+  }
+
   async getScreensByProject(projectId: number): Promise<Screen[]> {
     return await db
       .select()
