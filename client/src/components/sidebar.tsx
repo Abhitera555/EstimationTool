@@ -99,8 +99,13 @@ export default function Sidebar() {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl overflow-hidden">
-                <img src={logoImage} alt="EstimateFlow Logo" className="w-full h-full object-cover" />
+              <div className="w-9 h-9 rounded-xl overflow-hidden bg-white shadow-sm">
+                <img 
+                  src={logoImage} 
+                  alt="Revalsys Logo" 
+                  className="w-full h-full object-contain p-0.5" 
+                  style={{ imageRendering: 'crisp-edges' }}
+                />
               </div>
               <div>
                 <h1 className="font-bold text-slate-800">EstimateFlow</h1>
@@ -109,8 +114,13 @@ export default function Sidebar() {
             </div>
           )}
           {isCollapsed && (
-            <div className="w-9 h-9 rounded-xl overflow-hidden mx-auto">
-              <img src={logoImage} alt="EstimateFlow Logo" className="w-full h-full object-cover" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white shadow-sm mx-auto">
+              <img 
+                src={logoImage} 
+                alt="Revalsys Logo" 
+                className="w-full h-full object-contain p-0.5" 
+                style={{ imageRendering: 'crisp-edges' }}
+              />
             </div>
           )}
           <Button
