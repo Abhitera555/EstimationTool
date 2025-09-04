@@ -531,7 +531,7 @@ export default function Estimations() {
                     <p className="text-blue-100">Total Hours</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{totalHours <= 4 ? "0.5" : Math.ceil(totalHours / 8)}</div>
+                    <div className="text-4xl font-bold mb-2">{totalHours === 0 ? 0 : (totalHours <= 4 ? "0.5" : Math.ceil(totalHours / 8))}</div>
                     <p className="text-blue-100">Days (8hrs/day)</p>
                   </div>
                 </div>
