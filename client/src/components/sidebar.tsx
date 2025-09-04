@@ -14,6 +14,7 @@ import {
   Tv,
   Sliders,
   Monitor,
+  Clock,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -36,6 +37,7 @@ const mastersSubNavigation = [
   { name: "Screens", href: "/screens", icon: Tv },
   { name: "Complexity", href: "/complexity", icon: Sliders },
   { name: "Screen Types", href: "/screen-types", icon: Monitor },
+  { name: "Hour Mapping", href: "/hour-mapping", icon: Clock },
 ];
 
 const reportsNavigation = [

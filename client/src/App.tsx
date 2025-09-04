@@ -15,6 +15,7 @@ import ScreenTypes from "@/pages/screen-types";
 import Estimations from "@/pages/estimations-simple";
 import History from "@/pages/history";
 import Reports from "@/pages/reports";
+import HourMapping from "@/pages/hour-mapping";
 import Sidebar from "@/components/sidebar";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
           <Route path="/screens" component={Screens} />
           <Route path="/complexity" component={Complexity} />
           <Route path="/screen-types" component={ScreenTypes} />
+          <Route path="/hour-mapping" component={HourMapping} />
           <Route path="/estimations" component={Estimations} />
           <Route path="/history" component={History} />
           <Route path="/reports" component={Reports} />

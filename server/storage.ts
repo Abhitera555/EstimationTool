@@ -71,6 +71,7 @@ export interface IStorage {
   // Complexity Screen Behavior Mapping operations
   getComplexityScreenBehaviorMapping(): Promise<ComplexityScreenBehaviorMapping[]>;
   getHoursByComplexityAndBehavior(complexityName: string, screenBehavior: string): Promise<number>;
+  updateHourMapping(complexityName: string, screenBehavior: string, hours: number): Promise<ComplexityScreenBehaviorMapping>;
 
   // Estimation operations
   getEstimations(): Promise<any[]>;
@@ -302,6 +303,20 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return mapping?.hours || 0;
+  }
+
+  async updateHourMapping(complexityName: string, screenBehavior: string, hours: number): Promise<ComplexityScreenBehaviorMapping> {
+    const [updatedMapping] = await db
+      .update(complexityScreenBehaviorMapping)
+      .set({ hours })
+      .where(
+        and(
+          eq(complexityScreenBehaviorMapping.complexityName, complexityName.toLowerCase()),
+          eq(complexityScreenBehaviorMapping.screenBehavior, screenBehavior.toLowerCase())
+        )
+      )
+      .returning();
+    return updatedMapping;
   }
 
   // Estimation operations
