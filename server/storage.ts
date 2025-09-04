@@ -7,6 +7,7 @@ import {
   genericScreenTypes,
   estimations,
   estimationDetails,
+  complexityScreenBehaviorMapping,
   type User,
   type UpsertUser,
   type Project,
@@ -22,6 +23,7 @@ import {
   type InsertEstimation,
   type EstimationDetail,
   type InsertEstimationDetail,
+  type ComplexityScreenBehaviorMapping,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -65,6 +67,10 @@ export interface IStorage {
 
   // Generic Screen Types operations
   getGenericScreenTypes(): Promise<GenericScreenType[]>;
+
+  // Complexity Screen Behavior Mapping operations
+  getComplexityScreenBehaviorMapping(): Promise<ComplexityScreenBehaviorMapping[]>;
+  getHoursByComplexityAndBehavior(complexityName: string, screenBehavior: string): Promise<number>;
 
   // Estimation operations
   getEstimations(): Promise<any[]>;
@@ -278,6 +284,24 @@ export class DatabaseStorage implements IStorage {
   // Generic Screen Types operations
   async getGenericScreenTypes(): Promise<GenericScreenType[]> {
     return await db.select().from(genericScreenTypes).orderBy(genericScreenTypes.name);
+  }
+
+  // Complexity Screen Behavior Mapping operations
+  async getComplexityScreenBehaviorMapping(): Promise<ComplexityScreenBehaviorMapping[]> {
+    return await db.select().from(complexityScreenBehaviorMapping).orderBy(complexityScreenBehaviorMapping.complexityName, complexityScreenBehaviorMapping.screenBehavior);
+  }
+
+  async getHoursByComplexityAndBehavior(complexityName: string, screenBehavior: string): Promise<number> {
+    const [mapping] = await db
+      .select()
+      .from(complexityScreenBehaviorMapping)
+      .where(
+        and(
+          eq(complexityScreenBehaviorMapping.complexityName, complexityName.toLowerCase()),
+          eq(complexityScreenBehaviorMapping.screenBehavior, screenBehavior.toLowerCase())
+        )
+      );
+    return mapping?.hours || 0;
   }
 
   // Estimation operations

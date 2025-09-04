@@ -1,4 +1,5 @@
 import type { ComplexityMaster, ScreenTypeMaster, GenericScreenType } from "@shared/schema";
+import { apiRequest } from '@/lib/queryClient';
 
 export interface EstimationContext {
   screenType: GenericScreenType;
@@ -8,6 +9,22 @@ export interface EstimationContext {
 
 export class SmartEstimationEngine {
   
+  /**
+   * Helper function to fetch hours from the mapping
+   */
+  static async getHoursFromMapping(complexityName: string, screenBehavior: string): Promise<number> {
+    try {
+      if (!complexityName || !screenBehavior) return 0;
+      
+      const response = await apiRequest('GET', `/api/hour-mapping/${encodeURIComponent(complexityName)}/${encodeURIComponent(screenBehavior)}`);
+      const data = await response.json();
+      return data.hours || 0;
+    } catch (error) {
+      console.error('Error fetching hours from mapping:', error);
+      return 0;
+    }
+  }
+
   /**
    * Get allowed complexity levels for a specific screen type
    */
@@ -40,37 +57,25 @@ export class SmartEstimationEngine {
   }
 
   /**
-   * Calculate smart estimation hours based on context
+   * Calculate smart estimation hours based on context using direct hour mapping
    */
-  static calculateHours(context: EstimationContext): number {
-    const { screenType, complexity, behavior } = context;
+  static async calculateHours(context: EstimationContext): Promise<number> {
+    const { complexity, behavior } = context;
     
-    // Get base hours from screen type (with interdependency awareness)
-    const baseHours = screenType.baseHours || 4;
+    // Use the new hour mapping instead of multipliers
+    const hours = await this.getHoursFromMapping(complexity.name, behavior.name);
     
-    // Apply complexity multiplier
-    const complexityMultiplier = parseFloat(complexity.multiplier || '1.00');
-    
-    // Apply behavior multiplier
-    const behaviorMultiplier = parseFloat(behavior.multiplier || '1.00');
-    
-    // Calculate total hours
-    const totalHours = baseHours * complexityMultiplier * behaviorMultiplier;
-    
-    return Math.round(totalHours);
+    return hours;
   }
 
   /**
    * Get estimation explanation for transparency
    */
-  static getEstimationExplanation(context: EstimationContext): string {
-    const { screenType, complexity, behavior } = context;
-    const baseHours = screenType.baseHours || 4;
-    const complexityMultiplier = parseFloat(complexity.multiplier || '1.00');
-    const behaviorMultiplier = parseFloat(behavior.multiplier || '1.00');
-    const totalHours = this.calculateHours(context);
+  static async getEstimationExplanation(context: EstimationContext): Promise<string> {
+    const { complexity, behavior } = context;
+    const totalHours = await this.calculateHours(context);
     
-    return `${baseHours}h (${screenType.name}) × ${complexityMultiplier}x (${complexity.name}) × ${behaviorMultiplier}x (${behavior.name}) = ${totalHours}h`;
+    return `Direct mapping: ${complexity.name} complexity + ${behavior.name} behavior = ${totalHours}h`;
   }
 
   /**

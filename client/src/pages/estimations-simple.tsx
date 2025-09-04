@@ -126,6 +126,20 @@ export default function SimplifiedEstimations() {
     },
   });
 
+  // Helper function to fetch hours from the mapping
+  const getHoursFromMapping = async (complexity: string, screenBehavior: string): Promise<number> => {
+    try {
+      if (!complexity || !screenBehavior) return 0;
+      
+      const response = await apiRequest('GET', `/api/hour-mapping/${encodeURIComponent(complexity)}/${encodeURIComponent(screenBehavior)}`);
+      const data = await response.json();
+      return data.hours || 0;
+    } catch (error) {
+      console.error('Error fetching hours from mapping:', error);
+      return 0;
+    }
+  };
+
   const addEstimationItem = () => {
     const newItem: EstimationItem = {
       id: `item-${Date.now()}-${Math.random()}`,
@@ -142,26 +156,24 @@ export default function SimplifiedEstimations() {
     setEstimationItems(estimationItems.filter(item => item.id !== id));
   };
 
-  const updateEstimationItem = (id: string, field: keyof EstimationItem, value: any) => {
-    const updatedItems = estimationItems.map(item => {
+  const updateEstimationItem = async (id: string, field: keyof EstimationItem, value: any) => {
+    const updatedItems = await Promise.all(estimationItems.map(async (item) => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
         
         // Recalculate hours when complexity or screenTypeName changes
         if (field === 'complexity' || field === 'screenTypeName') {
           const complexity = field === 'complexity' ? value : updatedItem.complexity;
-          const screenTypeName = field === 'screenTypeName' ? value : updatedItem.screenTypeName;
+          const screenBehavior = field === 'screenTypeName' ? value : updatedItem.screenTypeName;
           
-          const complexityHours = complexities?.find(c => c.name === complexity)?.hours || 0;
-          const screenTypeHours = screenTypes?.find(s => s.name === screenTypeName)?.hours || 0;
-          
-          updatedItem.hours = complexityHours + screenTypeHours;
+          // Use the new hour mapping instead of adding complexity + screen type hours
+          updatedItem.hours = await getHoursFromMapping(complexity, screenBehavior);
         }
         
         return updatedItem;
       }
       return item;
-    });
+    }));
     
     setEstimationItems(updatedItems);
   };

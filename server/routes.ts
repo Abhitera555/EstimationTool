@@ -264,6 +264,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complexity Screen Behavior Mapping routes
+  app.get('/api/hour-mapping', isAuthenticated, async (req, res) => {
+    try {
+      const mapping = await storage.getComplexityScreenBehaviorMapping();
+      res.json(mapping);
+    } catch (error) {
+      console.error("Error fetching hour mapping:", error);
+      res.status(500).json({ message: "Failed to fetch hour mapping" });
+    }
+  });
+
+  app.get('/api/hour-mapping/:complexity/:behavior', isAuthenticated, async (req, res) => {
+    try {
+      const { complexity, behavior } = req.params;
+      const hours = await storage.getHoursByComplexityAndBehavior(complexity, behavior);
+      res.json({ hours });
+    } catch (error) {
+      console.error("Error fetching hours for complexity and behavior:", error);
+      res.status(500).json({ message: "Failed to fetch hours" });
+    }
+  });
+
   // Estimation routes
   app.get('/api/estimations', isAuthenticated, async (req, res) => {
     try {

@@ -158,7 +158,7 @@ export default function Estimations() {
         screenName: defaultScreen.name,
         complexity: defaultComplexity.name,
         screenType: defaultScreenType.name,
-        hours: Math.round(4 * parseFloat(defaultComplexity.multiplier || '1.00') * parseFloat(defaultScreenType.multiplier || '1.00')),
+        hours: 0, // Will be calculated when user selects complexity and behavior
       };
       setEstimationScreens([...estimationScreens, newScreen]);
     }
@@ -168,41 +168,26 @@ export default function Estimations() {
     setEstimationScreens(estimationScreens.filter((_, i) => i !== index));
   };
 
-  const updateScreen = (index: number, field: keyof EstimationScreen, value: any) => {
+  const updateScreen = async (index: number, field: keyof EstimationScreen, value: any) => {
     const updatedScreens = [...estimationScreens];
     updatedScreens[index] = { ...updatedScreens[index], [field]: value };
     
-    // Recalculate hours based on complexity and screen type using master data
+    // Recalculate hours based on complexity and screen type using direct mapping
     if (field === 'complexity' || field === 'screenType') {
       const complexity = field === 'complexity' ? value : updatedScreens[index].complexity;
-      const screenType = field === 'screenType' ? value : updatedScreens[index].screenType;
+      const screenBehavior = field === 'screenType' ? value : updatedScreens[index].screenType;
       
-      let complexityHours = 0;
-      let screenTypeHours = 0;
-      
-      // Use Smart Estimation Engine with interdependency awareness
-      const selectedScreen = projectScreens?.find(s => s.id === updatedScreens[index].screenId);
-      const genericScreenType = screenTypes?.find(gst => 
-        selectedScreen?.name.toLowerCase().includes(gst.name.toLowerCase()) ||
-        gst.name.toLowerCase().includes('form') // Default fallback
-      ) || screenTypes?.[0];
-      
-      if (complexity && screenType && complexities && screenTypes && genericScreenType) {
-        const complexityData = complexities.find(c => c.name === complexity);
-        const behaviorData = screenTypes.find(s => s.name === screenType);
-        
-        if (complexityData && behaviorData) {
-          // Use smart estimation engine
-          const estimationContext = {
-            screenType: genericScreenType,
-            complexity: complexityData,
-            behavior: behaviorData
-          };
+      if (complexity && screenBehavior) {
+        // Use the new hour mapping directly
+        try {
+          const response = await apiRequest('GET', `/api/hour-mapping/${encodeURIComponent(complexity)}/${encodeURIComponent(screenBehavior)}`);
+          const data = await response.json();
+          updatedScreens[index].hours = data.hours || 0;
           
-          updatedScreens[index].hours = SmartEstimationEngine.calculateHours(estimationContext);
-          
-          // Log estimation explanation for transparency
-          console.log('🎯 Smart Estimation:', SmartEstimationEngine.getEstimationExplanation(estimationContext));
+          console.log(`🎯 Direct Mapping: ${complexity} + ${screenBehavior} = ${data.hours}h`);
+        } catch (error) {
+          console.error('Error fetching hours from mapping:', error);
+          updatedScreens[index].hours = 0;
         }
       }
     }

@@ -218,6 +218,20 @@ export const insertEstimationDetailSchema = createInsertSchema(estimationDetails
   id: true,
 });
 
+// Complexity Screen Behavior Mapping table for direct hour mapping
+export const complexityScreenBehaviorMapping = pgTable("complexity_screen_behavior_mapping", {
+  id: serial("id").primaryKey(),
+  complexityName: varchar("complexity_name", { length: 50 }).notNull(), // complex, high, medium, low
+  screenBehavior: varchar("screen_behavior", { length: 50 }).notNull(), // static, dynamic, partial dynamic, other
+  hours: integer("hours").notNull(), // Direct hour mapping from your matrix
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertComplexityScreenBehaviorMappingSchema = createInsertSchema(complexityScreenBehaviorMapping).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -235,3 +249,5 @@ export type Estimation = typeof estimations.$inferSelect;
 export type InsertEstimation = z.infer<typeof insertEstimationSchema>;
 export type EstimationDetail = typeof estimationDetails.$inferSelect;
 export type InsertEstimationDetail = z.infer<typeof insertEstimationDetailSchema>;
+export type ComplexityScreenBehaviorMapping = typeof complexityScreenBehaviorMapping.$inferSelect;
+export type InsertComplexityScreenBehaviorMapping = z.infer<typeof insertComplexityScreenBehaviorMappingSchema>;
