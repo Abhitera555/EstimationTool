@@ -570,14 +570,14 @@ export default function Reports() {
               </div>
               
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-700">Screen Behavior</Label>
+                <Label className="text-sm font-medium text-slate-700">Screen Type</Label>
                 <div className="flex gap-1">
                   <Select value={behaviorFilter} onValueChange={setBehaviorFilter}>
                     <SelectTrigger data-testid="filter-behavior" className="flex-1">
-                      <SelectValue placeholder="All Behaviors" />
+                      <SelectValue placeholder="All Screen Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Behaviors</SelectItem>
+                      <SelectItem value="all">All Screen Types</SelectItem>
                       {behaviors.map(behavior => (
                         <SelectItem key={behavior} value={behavior}>{behavior}</SelectItem>
                       ))}

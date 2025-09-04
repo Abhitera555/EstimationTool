@@ -260,7 +260,7 @@ export default function SimplifiedEstimations() {
                 Create Estimation
               </h1>
               <p className="text-slate-600 text-lg">
-                Simple dropdown-based estimation: <strong>Project</strong> → <strong>Screen Type</strong> → <strong>Complexity</strong> → <strong>Screen Behavior</strong> = <strong>Auto Hours</strong>
+                Simple dropdown-based estimation: <strong>Project</strong> → <strong>Screen</strong> → <strong>Complexity</strong> → <strong>Screen Type</strong> = <strong>Auto Hours</strong>
               </p>
             </div>
 
@@ -411,7 +411,7 @@ export default function SimplifiedEstimations() {
                           </div>
                           
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-slate-700">Screen Behavior</Label>
+                            <Label className="text-sm font-medium text-slate-700">Screen Type</Label>
                             <Select 
                               value={item.screenTypeName} 
                               onValueChange={(value) => updateEstimationItem(item.id, 'screenTypeName', value)}
