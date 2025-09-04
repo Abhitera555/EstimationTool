@@ -127,5 +127,5 @@ export function calculateEstimatedDays(totalHours: number): number {
 
 // Utility function to format days display
 export function formatDays(days: number): string {
-  return days === 0.5 ? '0.5' : days.toString();
+  return days === 0.5 ? '0.5 Day' : days.toString();
 }
