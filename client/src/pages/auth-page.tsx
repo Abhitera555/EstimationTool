@@ -88,7 +88,7 @@ export default function AuthPage() {
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight">Welcome</h1>
             <p className="text-muted-foreground mt-2">
-              Sign in with your RevalSys credentials
+              Sign in with your Revalsys credentials
             </p>
           </div>
 
@@ -96,10 +96,10 @@ export default function AuthPage() {
             <CardHeader className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Lock className="h-5 w-5" />
-                RevalSys Login
+                Login
               </CardTitle>
               <CardDescription>
-                Enter your RevalSys credentials to access the application
+                Enter your Revalsys credentials to access the application
               </CardDescription>
             </CardHeader>
             <CardContent>
