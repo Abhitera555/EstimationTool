@@ -286,6 +286,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/hour-mapping', isAuthenticated, async (req, res) => {
+    try {
+      const { complexityName, screenBehavior, hours } = req.body;
+      
+      if (!complexityName || !screenBehavior || typeof hours !== 'number' || hours < 0) {
+        return res.status(400).json({ message: "Complexity name, screen behavior, and non-negative hours are required" });
+      }
+      
+      const newMapping = await storage.createHourMapping(complexityName, screenBehavior, hours);
+      res.status(201).json(newMapping);
+    } catch (error) {
+      console.error("Error creating hour mapping:", error);
+      res.status(500).json({ message: "Failed to create hour mapping" });
+    }
+  });
+
   app.put('/api/hour-mapping/:complexity/:behavior', isAuthenticated, async (req, res) => {
     try {
       const { complexity, behavior } = req.params;

@@ -20,17 +20,76 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Save, X, Clock } from "lucide-react";
-import { ComplexityScreenBehaviorMapping } from "@shared/schema";
+import { Edit, Save, X, Clock, Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ComplexityScreenBehaviorMapping, ComplexityMaster, ScreenTypeMaster } from "@shared/schema";
 
 export default function HourMappingPage() {
   const { toast } = useToast();
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newMapping, setNewMapping] = useState({
+    complexityName: "",
+    screenBehavior: "",
+    hours: ""
+  });
 
   // Fetch hour mapping data
   const { data: hourMapping, isLoading } = useQuery<ComplexityScreenBehaviorMapping[]>({
     queryKey: ['/api/hour-mapping'],
+  });
+
+  // Fetch complexity and screen type options for dropdowns
+  const { data: complexities } = useQuery<ComplexityMaster[]>({
+    queryKey: ['/api/complexity'],
+  });
+
+  const { data: screenTypes } = useQuery<ScreenTypeMaster[]>({
+    queryKey: ['/api/screen-types'],
+  });
+
+  // Create hour mapping mutation
+  const createMutation = useMutation({
+    mutationFn: async ({ complexityName, screenBehavior, hours }: { 
+      complexityName: string; 
+      screenBehavior: string; 
+      hours: number; 
+    }) => {
+      const res = await apiRequest('POST', '/api/hour-mapping', { complexityName, screenBehavior, hours });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/hour-mapping'] });
+      toast({
+        title: "Success",
+        description: "New hour mapping created successfully",
+      });
+      setIsAddDialogOpen(false);
+      setNewMapping({ complexityName: "", screenBehavior: "", hours: "" });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   // Update hour mapping mutation
@@ -86,6 +145,24 @@ export default function HourMappingPage() {
     setEditValue("");
   };
 
+  const handleCreateMapping = () => {
+    const hours = parseInt(newMapping.hours);
+    if (!newMapping.complexityName || !newMapping.screenBehavior || isNaN(hours) || hours < 0) {
+      toast({
+        title: "Invalid Input",
+        description: "Please fill all fields with valid values",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createMutation.mutate({ 
+      complexityName: newMapping.complexityName, 
+      screenBehavior: newMapping.screenBehavior, 
+      hours 
+    });
+  };
+
   const getComplexityColor = (complexity: string) => {
     const normalizedComplexity = complexity.toLowerCase();
     switch (normalizedComplexity) {
@@ -139,6 +216,91 @@ export default function HourMappingPage() {
             Configure hour estimates for each complexity and screen type combination
           </p>
         </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              data-testid="button-add-mapping"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Mapping
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Hour Mapping</DialogTitle>
+              <DialogDescription>
+                Create a new hour mapping for a complexity and screen type combination.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="complexity">Complexity</Label>
+                <Select
+                  value={newMapping.complexityName}
+                  onValueChange={(value) => setNewMapping(prev => ({ ...prev, complexityName: value }))}
+                >
+                  <SelectTrigger data-testid="select-new-complexity">
+                    <SelectValue placeholder="Select complexity level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {complexities?.map((complexity) => (
+                      <SelectItem key={complexity.id} value={complexity.name.toLowerCase()}>
+                        {complexity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="screenType">Screen Type</Label>
+                <Select
+                  value={newMapping.screenBehavior}
+                  onValueChange={(value) => setNewMapping(prev => ({ ...prev, screenBehavior: value }))}
+                >
+                  <SelectTrigger data-testid="select-new-screen-type">
+                    <SelectValue placeholder="Select screen type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {screenTypes?.map((screenType) => (
+                      <SelectItem key={screenType.id} value={screenType.name.toLowerCase()}>
+                        {screenType.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hours">Hours</Label>
+                <Input
+                  id="hours"
+                  type="number"
+                  min="0"
+                  placeholder="Enter hours"
+                  value={newMapping.hours}
+                  onChange={(e) => setNewMapping(prev => ({ ...prev, hours: e.target.value }))}
+                  data-testid="input-new-hours"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+                data-testid="button-cancel-add"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateMapping}
+                disabled={createMutation.isPending}
+                data-testid="button-save-add"
+              >
+                {createMutation.isPending ? "Creating..." : "Create Mapping"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Hour Mapping Matrix Card */}
