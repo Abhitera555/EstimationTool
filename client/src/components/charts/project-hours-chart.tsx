@@ -19,6 +19,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BarChart3, LineChart as LineChartIcon, AreaChart as AreaChartIcon } from "lucide-react";
 import type { ProjectHoursData } from "@/lib/types";
+import { calculateEstimatedDays, formatDays } from "@/lib/estimation-engine";
 
 const GRADIENT_COLORS = [
   { start: '#3B82F6', end: '#8B5CF6' }, // Blue to Purple
@@ -84,6 +85,7 @@ export default function ProjectHoursChart() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const value = payload[0].value;
+      const days = calculateEstimatedDays(value);
       return (
         <div className="bg-white/95 backdrop-blur-sm border border-slate-200 shadow-lg rounded-lg p-4">
           <p className="font-semibold text-slate-800 mb-2">{label}</p>
@@ -93,10 +95,13 @@ export default function ProjectHoursChart() {
               style={{ backgroundColor: payload[0].color }}
             ></div>
             <span className="text-sm text-slate-600">
-              Total Hours: <span className="font-bold text-lg">{value} hrs</span>
+              Total Days: <span className="font-bold text-lg">{formatDays(days)} days</span>
             </span>
           </div>
-          <p className="text-xs text-slate-500 px-2 py-1 rounded-full bg-slate-100 inline-block">
+          <div className="text-xs text-slate-500 mt-1">
+            ({value} hours)
+          </div>
+          <p className="text-xs text-slate-500 px-2 py-1 rounded-full bg-slate-100 inline-block mt-2">
             {value > 100 ? '🚀 Large Project' : 
              value > 50 ? '📊 Medium Project' : '⚡ Small Project'}
           </p>
@@ -134,7 +139,7 @@ export default function ProjectHoursChart() {
             <YAxis 
               tick={{ fontSize: 12, fill: '#64748B' }}
               axisLine={{ stroke: '#CBD5E1' }}
-              label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
+              label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Line 
@@ -144,7 +149,7 @@ export default function ProjectHoursChart() {
               strokeWidth={4}
               dot={{ fill: '#3B82F6', strokeWidth: 3, r: 8, stroke: '#fff' }}
               activeDot={{ r: 10, fill: '#8B5CF6', strokeWidth: 3, stroke: '#fff' }}
-              name="Hours"
+              name="Days"
             />
           </LineChart>
         );
@@ -170,7 +175,7 @@ export default function ProjectHoursChart() {
             <YAxis 
               tick={{ fontSize: 12, fill: '#64748B' }}
               axisLine={{ stroke: '#CBD5E1' }}
-              label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
+              label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area 
@@ -180,7 +185,7 @@ export default function ProjectHoursChart() {
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#areaGradient)"
-              name="Hours"
+              name="Days"
             />
           </AreaChart>
         );
@@ -208,13 +213,13 @@ export default function ProjectHoursChart() {
             <YAxis 
               tick={{ fontSize: 12, fill: '#64748B' }}
               axisLine={{ stroke: '#CBD5E1' }}
-              label={{ value: 'Hours', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
+              label={{ value: 'Days', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#64748B' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="totalHours" 
               radius={[8, 8, 0, 0]}
-              name="Hours"
+              name="Days"
             >
               {projectHours?.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={`url(#barGradient${index})`} />

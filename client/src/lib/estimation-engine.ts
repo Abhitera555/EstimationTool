@@ -113,3 +113,19 @@ export class SmartEstimationEngine {
     };
   }
 }
+
+// Utility function to calculate estimated days with specific logic:
+// If hours <= 4: 0.5 day
+// If hours > 4: 1 day (8 working hours = 1 day)
+export function calculateEstimatedDays(totalHours: number): number {
+  if (totalHours <= 4) {
+    return 0.5;
+  } else {
+    return Math.ceil(totalHours / 8);
+  }
+}
+
+// Utility function to format days display
+export function formatDays(days: number): string {
+  return days === 0.5 ? '0.5' : days.toString();
+}

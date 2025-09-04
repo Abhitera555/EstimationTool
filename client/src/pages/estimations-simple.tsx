@@ -20,6 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import type { Project, ComplexityMaster, ScreenTypeMaster, GenericScreenType, Screen } from "@shared/schema";
+import { calculateEstimatedDays, formatDays } from "@/lib/estimation-engine";
 
 interface EstimationItem {
   id: string; // unique identifier for React keys
@@ -179,7 +180,7 @@ export default function SimplifiedEstimations() {
   };
 
   const totalHours = estimationItems.reduce((sum, item) => sum + item.hours, 0);
-  const estimatedDays = Math.ceil(totalHours / 8);
+  const estimatedDays = calculateEstimatedDays(totalHours);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -471,8 +472,8 @@ export default function SimplifiedEstimations() {
                       <p className="text-blue-100">Total Hours</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl font-bold mb-2">{estimatedDays}</div>
-                      <p className="text-blue-100">Days (8hrs/day)</p>
+                      <div className="text-4xl font-bold mb-2">{formatDays(estimatedDays)}</div>
+                      <p className="text-blue-100">Days (&le;4hrs=0.5day, &gt;4hrs=1day)</p>
                     </div>
                   </div>
                   

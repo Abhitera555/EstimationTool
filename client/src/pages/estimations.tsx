@@ -20,7 +20,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Calculator, Plus, Trash2, Clock, CheckCircle2, ArrowLeft, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import type { Project, ComplexityMaster, ScreenTypeMaster, Screen, GenericScreenType } from "@shared/schema";
-import { SmartEstimationEngine } from "@/lib/estimation-engine";
+import { SmartEstimationEngine, calculateEstimatedDays, formatDays } from "@/lib/estimation-engine";
 
 // Use the standard EstimationScreenData interface
 import type { EstimationScreenData } from "@/lib/types";
@@ -196,7 +196,7 @@ export default function Estimations() {
   };
 
   const totalHours = estimationScreens.reduce((sum, screen) => sum + screen.hours, 0);
-  const estimatedDays = Math.ceil(totalHours / 8);
+  const estimatedDays = calculateEstimatedDays(totalHours);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -531,8 +531,8 @@ export default function Estimations() {
                     <p className="text-blue-100">Total Hours</p>
                   </div>
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{estimatedDays}</div>
-                    <p className="text-blue-100">Estimated Days</p>
+                    <div className="text-4xl font-bold mb-2">{formatDays(estimatedDays)}</div>
+                    <p className="text-blue-100">Days (&le;4hrs=0.5day, &gt;4hrs=1day)</p>
                   </div>
                 </div>
                 

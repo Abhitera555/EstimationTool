@@ -19,6 +19,7 @@ import ProjectHoursChart from "@/components/charts/project-hours-chart";
 import ScreenTypeChart from "@/components/charts/screen-type-chart";
 import ComplexityChart from "@/components/charts/complexity-chart";
 import type { DashboardStats, EstimationWithDetails } from "@/lib/types";
+import { calculateEstimatedDays, formatDays } from "@/lib/estimation-engine";
 
 export default function Home() {
   const { toast } = useToast();
@@ -127,10 +128,10 @@ export default function Home() {
               <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <Clock className="h-6 w-6 text-white" />
               </div>
-              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-hours">
-                {stats?.totalHours || 0}
+              <div className="text-3xl font-bold text-slate-800 mb-1" data-testid="text-total-days">
+                {stats?.totalHours ? formatDays(calculateEstimatedDays(parseInt(stats.totalHours.toString()))) : 0}
               </div>
-              <p className="text-slate-600">Total Hours</p>
+              <p className="text-slate-600">Total Days</p>
             </CardContent>
           </Card>
 
