@@ -403,7 +403,7 @@ export default function SimplifiedEstimations() {
                               <SelectContent>
                                 {complexities?.map((complexity) => (
                                   <SelectItem key={complexity.id} value={complexity.name}>
-                                    {complexity.name} ({complexity.hours}h)
+                                    {complexity.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -422,7 +422,7 @@ export default function SimplifiedEstimations() {
                               <SelectContent>
                                 {screenTypes?.map((screenType) => (
                                   <SelectItem key={screenType.id} value={screenType.name}>
-                                    {screenType.name} ({screenType.hours}h)
+                                    {screenType.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

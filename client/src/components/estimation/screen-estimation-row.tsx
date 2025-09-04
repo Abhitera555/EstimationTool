@@ -108,7 +108,7 @@ export default function ScreenEstimationRow({
             <SelectContent>
               {complexities.map((complexity) => (
                 <SelectItem key={complexity.id} value={complexity.id.toString()}>
-                  {complexity.name} ({complexity.hours}h)
+                  {complexity.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -124,7 +124,7 @@ export default function ScreenEstimationRow({
             <SelectContent>
               {screenTypes.map((screenType) => (
                 <SelectItem key={screenType.id} value={screenType.id.toString()}>
-                  {screenType.name} ({screenType.hours}h)
+                  {screenType.name}
                 </SelectItem>
               ))}
             </SelectContent>
