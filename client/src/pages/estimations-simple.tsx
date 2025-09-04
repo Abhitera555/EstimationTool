@@ -470,12 +470,10 @@ export default function SimplifiedEstimations() {
                     <div className="text-center">
                       <div className="text-4xl font-bold mb-2">{totalHours}</div>
                       <p className="text-blue-100">Total Hours</p>
-                      <div className="text-2xl font-semibold mt-2">{formatDays(estimatedDays)}</div>
-                      <p className="text-blue-100 text-sm">Days (8hrs/day)</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl font-bold mb-2">{estimatedDays}</div>
-                      <p className="text-blue-100">Estimated Days</p>
+                      <div className="text-4xl font-bold mb-2">{totalHours <= 4 ? "0.5" : Math.ceil(totalHours / 8)}</div>
+                      <p className="text-blue-100">Days (8hrs/day)</p>
                     </div>
                   </div>
                   
